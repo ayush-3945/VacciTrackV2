@@ -12,8 +12,8 @@ const router = express.Router();
 const syncParentNotifications = async (userId) => {
   const children = await Child.find({ parentId: userId });
   const now = new Date();
-  const sevenDaysFromNow = new Date();
-  sevenDaysFromNow.setDate(now.getDate() + 7);
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(now.getDate() + 30);
 
   for (const child of children) {
     for (const v of child.schedule || []) {
@@ -42,7 +42,7 @@ const syncParentNotifications = async (userId) => {
             },
           });
         }
-      } else if (v.status === 'PENDING' || (v.status === 'UPCOMING' && new Date(v.dueDate) <= sevenDaysFromNow)) {
+      } else if (v.status === 'PENDING' || (v.status === 'UPCOMING' && new Date(v.dueDate) <= thirtyDaysFromNow)) {
         const existing = await Notification.findOne({
           userId,
           childId: child._id,
@@ -51,13 +51,14 @@ const syncParentNotifications = async (userId) => {
         });
 
         if (!existing) {
+          const doseStr = v.doseNumber ? ` (Dose ${v.doseNumber})` : '';
           await Notification.create({
             userId,
             childId: child._id,
             type: 'UPCOMING',
             priority: 'warning',
             title: `Upcoming Dose: ${v.shortName}`,
-            message: `${child.name}'s ${v.name} is due within 7 days. Ensure child is healthy for vaccination.`,
+            message: `${child.name}'s ${v.name}${doseStr} is due soon. Ensure child is prepared for vaccination.`,
             metadata: {
               vaccineId: v.vaccineId,
               shortName: v.shortName,

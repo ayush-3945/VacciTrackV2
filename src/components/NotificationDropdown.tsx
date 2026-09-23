@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, AlertTriangle, Clock, CheckCircle2, ShieldAlert, Check, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
 import { notificationsAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -28,7 +27,7 @@ const NotificationDropdown: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'urgent' | 'unread'>('all');
+  const [filter, setFilter] = useState<'all' | 'urgent' | 'upcoming' | 'unread'>('all');
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchNotifications = async () => {
@@ -46,7 +45,7 @@ const NotificationDropdown: React.FC = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // 30s auto-refresh
+    const interval = setInterval(fetchNotifications, 20000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -88,8 +87,17 @@ const NotificationDropdown: React.FC = () => {
     }
   };
 
+  const urgentCount = notifications.filter(
+    n => n.priority === 'urgent' || n.type === 'OVERDUE' || n.type === 'DOCTOR_REMINDER'
+  ).length;
+
+  const upcomingCount = notifications.filter(
+    n => n.type === 'UPCOMING' || n.priority === 'warning'
+  ).length;
+
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'urgent') return n.priority === 'urgent' || n.type === 'OVERDUE' || n.type === 'DOCTOR_REMINDER';
+    if (filter === 'upcoming') return n.type === 'UPCOMING' || n.priority === 'warning';
     if (filter === 'unread') return !n.isRead;
     return true;
   });
@@ -128,7 +136,7 @@ const NotificationDropdown: React.FC = () => {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[360px] sm:w-[400px] p-0 border-border bg-card shadow-xl rounded-2xl overflow-hidden"
+        className="w-[360px] sm:w-[420px] p-0 border-border bg-card shadow-xl rounded-2xl overflow-hidden"
       >
         {/* Header */}
         <div className="p-4 border-b border-border bg-muted/30">
@@ -152,12 +160,12 @@ const NotificationDropdown: React.FC = () => {
             )}
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex gap-1.5">
+          {/* Filter Pills with Counts */}
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
             <button
               onClick={() => setFilter('all')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors',
+                'px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
                 filter === 'all'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -168,18 +176,29 @@ const NotificationDropdown: React.FC = () => {
             <button
               onClick={() => setFilter('urgent')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors',
+                'px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
                 filter === 'urgent'
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-rose-600 text-white font-semibold'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               )}
             >
-              Urgent
+              Urgent ({urgentCount})
+            </button>
+            <button
+              onClick={() => setFilter('upcoming')}
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
+                filter === 'upcoming'
+                  ? 'bg-amber-600 text-white font-semibold'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Upcoming ({upcomingCount})
             </button>
             <button
               onClick={() => setFilter('unread')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors',
+                'px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
                 filter === 'unread'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
