@@ -157,6 +157,40 @@ Anyone (school, hospital, or authority) can scan the QR code on the certificate 
 - Pat the skin dry with a soft towel gently.
 - If baby has high fever or is fussy, you can opt for a quick sponge bath instead.`,
     suggestions: ['Fever management', 'Swelling at injection site', 'Next due date']
+  },
+  {
+    triggers: [
+      'opv', 'ipv', 'fipv', 'polio', 'drops', 'oral polio', 'inactivated polio', 'two drops'
+    ],
+    title: 'OPV vs IPV (Polio Vaccines Explained)',
+    reply: `🛡️ **OPV vs IPV (Why Both are Given in NIS 2025):**
+India uses **BOTH** oral drops and injectable polio vaccines together for maximum protection:
+
+1. **OPV (Oral Polio Vaccine - Drops):**
+   - Given at Birth (Zero dose), 6, 10, and 14 weeks, plus booster at 16–24 months.
+   - Builds **mucosal immunity** in the gut to prevent the polio virus from shedding or spreading to others.
+
+2. **fIPV (Fractional Inactivated Polio Vaccine - Injection):**
+   - Given intradermally into the right upper arm at **6 weeks and 14 weeks**.
+   - Builds deep **humoral (blood) antibody immunity**, preventing paralysis even if exposed.
+
+👉 *Together, they provide complete, lifelong immunity against all poliovirus strains!*`,
+    suggestions: ['Fever after vaccination?', 'NIS 2025 schedule', 'What is Pentavalent?']
+  },
+  {
+    triggers: [
+      'abha', 'abha id', 'ayushman', 'health id', '14 digit', 'digital health', 'card'
+    ],
+    title: 'ABHA ID (Ayushman Bharat Health Account)',
+    reply: `🆔 **What is an ABHA ID and Why is it Needed?**
+An **ABHA ID** (Ayushman Bharat Health Account) is a 14-digit digital health identity created under India's **Ayushman Bharat Digital Mission (ABDM)**.
+
+**Key Benefits for Your Child in VacciTrack:**
+1. **Paperless Immunization Card:** Never lose your child's vaccination history again.
+2. **Nationwide Interoperability:** Accepted across all Government PHCs, AIIMS, and private pediatric hospitals in India.
+3. **School & Travel Ready:** Enables instant QR code authentication for admissions and passports.
+4. **100% Secure & Private:** Accessed only via two-factor OTP verification by registered healthcare professionals.`,
+    suggestions: ['How to download certificate?', 'NIS 2025 schedule', 'Doctor reminder']
   }
 ];
 

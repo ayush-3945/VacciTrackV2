@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Send, Sparkles, User, RefreshCw, ChevronDown, ShieldCheck } from 'lucide-react';
+import { Bot, X, Send, Sparkles, ShieldCheck, Languages, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { chatAPI } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -13,25 +13,44 @@ interface ChatMessage {
   suggestions?: string[];
 }
 
-const DEFAULT_SUGGESTIONS = [
-  'Vaccine ke baad bukhar aa gaya?',
-  'BCG scar nahi bana toh kya karein?',
-  'Dose miss ho gayi toh kya karein?',
-  'NIS 2025 schedule summary',
-  'Download Certificate kaise karein?',
+export const ENGLISH_QUESTIONS = [
+  "What to do if baby gets fever after vaccine?",
+  "What if no BCG scar has formed after 12 weeks?",
+  "Can I bathe my baby immediately after vaccination?",
+  "What if we missed a scheduled vaccine dose?",
+  "What is Pentavalent vaccine and why is it given?",
+  "How to download official QR-verified certificate?",
+  "What is the difference between OPV and IPV polio vaccines?",
+  "How to relieve injection site swelling and pain?",
+  "What is ABHA ID and why is it needed?",
+  "Overview of India's NIS 2025 vaccine schedule",
+];
+
+export const HINGLISH_QUESTIONS = [
+  "Vaccine ke baad baby ko bukhar aa gaya, kya karein?",
+  "BCG scar nahi bana toh kya dobara lagwana padega?",
+  "Vaccine lagne ke baad baby ko nehla sakte hain kya?",
+  "Agar dose miss ho gayi ya date nikal gayi toh kya karein?",
+  "Pentavalent vaccine 5 bimariyon se kaise bachati hai?",
+  "Official QR wala Vaccine Certificate kaise download karein?",
+  "OPV do boond aur IPV sui me kya antar hai?",
+  "Injection wali jagah par sujan aur dard ka kya ilaj hai?",
+  "Bachhe ka ABHA ID kya hota hai aur iska kya fayda hai?",
+  "India ke NIS 2025 schedule me kaun-kaun si vaccines hain?",
 ];
 
 const VaxBotChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activePromptTab, setActivePromptTab] = useState<'hinglish' | 'english'>('hinglish');
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'bot',
-      text: 'Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!',
+      text: 'Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!\n\n👇 **Neeche diye gaye 10 Hinglish ya 10 English questions me se koi bhi click karein:**',
       timestamp: new Date(),
-      suggestions: DEFAULT_SUGGESTIONS,
     },
   ]);
 
@@ -72,7 +91,7 @@ const VaxBotChat: React.FC = () => {
         sender: 'bot',
         text: res.reply,
         timestamp: new Date(),
-        suggestions: res.suggestions && res.suggestions.length > 0 ? res.suggestions : DEFAULT_SUGGESTIONS,
+        suggestions: res.suggestions && res.suggestions.length > 0 ? res.suggestions : undefined,
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (err: any) {
@@ -80,9 +99,8 @@ const VaxBotChat: React.FC = () => {
       const fallbackResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: 'Maaf kijiye, abhi server se connect nahi ho pa raha hai. Par sadharan roop se vaccine ke baad halka bukhar aana normal hai. Lukewarm paani ki patti rakhein aur pediatrician se salah lein.',
+        text: 'Maaf kijiye, server se connect karne me dikkat aa rahi hai. Vaccine ke baad halka bukhar aana normal hai. Baby ko comfortable kapde pehnayein aur lukewarm paani ki patti rakhein.',
         timestamp: new Date(),
-        suggestions: DEFAULT_SUGGESTIONS,
       };
       setMessages(prev => [...prev, fallbackResponse]);
     } finally {
@@ -99,7 +117,6 @@ const VaxBotChat: React.FC = () => {
 
   const renderFormattedText = (text: string) => {
     return text.split('\n').map((line, idx) => {
-      // Bold rendering **text**
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
         <p key={idx} className={cn('min-h-[1.25rem]', idx > 0 && 'mt-1')}>
@@ -117,6 +134,8 @@ const VaxBotChat: React.FC = () => {
       );
     });
   };
+
+  const currentQuestions = activePromptTab === 'hinglish' ? HINGLISH_QUESTIONS : ENGLISH_QUESTIONS;
 
   return (
     <>
@@ -151,7 +170,7 @@ const VaxBotChat: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[420px] h-[550px] max-h-[80vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[440px] h-[590px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-700 text-white p-4 flex items-center justify-between shadow-sm flex-shrink-0">
@@ -181,6 +200,52 @@ const VaxBotChat: React.FC = () => {
               </div>
             </div>
 
+            {/* Quick 10+10 Question Tabs Tray */}
+            <div className="p-2.5 bg-muted/40 border-b border-border/60 flex-shrink-0">
+              <div className="flex items-center justify-between mb-1.5 px-1">
+                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                  <HelpCircle className="w-3.5 h-3.5 text-primary" /> Popular Questions (10+10)
+                </span>
+                <div className="flex gap-1 bg-background p-0.5 rounded-lg border border-border">
+                  <button
+                    onClick={() => setActivePromptTab('hinglish')}
+                    className={cn(
+                      'px-2 py-0.5 text-[11px] font-semibold rounded-md transition-colors',
+                      activePromptTab === 'hinglish'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    🇮🇳 Hinglish (10)
+                  </button>
+                  <button
+                    onClick={() => setActivePromptTab('english')}
+                    className={cn(
+                      'px-2 py-0.5 text-[11px] font-semibold rounded-md transition-colors',
+                      activePromptTab === 'english'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    🌐 English (10)
+                  </button>
+                </div>
+              </div>
+
+              {/* Horizontal Scroll of Questions */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                {currentQuestions.map((q, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(q)}
+                    className="px-2.5 py-1 rounded-full text-[11px] whitespace-nowrap font-medium bg-teal-500/10 text-teal-700 dark:text-teal-300 hover:bg-teal-500/20 border border-teal-500/20 transition-all text-left flex-shrink-0"
+                  >
+                    {idx + 1}. {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map(msg => (
@@ -191,7 +256,7 @@ const VaxBotChat: React.FC = () => {
                     msg.sender === 'user' ? 'items-end' : 'items-start'
                   )}
                 >
-                  <div className="flex items-start gap-2 max-w-[85%]">
+                  <div className="flex items-start gap-2 max-w-[88%]">
                     {msg.sender === 'bot' && (
                       <div className="w-7 h-7 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-500/20">
                         <Bot className="w-4 h-4" />
@@ -210,7 +275,7 @@ const VaxBotChat: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Suggestion Chips attached to bot message */}
+                  {/* Suggestion Chips */}
                   {msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2 pl-9">
                       {msg.suggestions.map((suggestion, sIdx) => (
