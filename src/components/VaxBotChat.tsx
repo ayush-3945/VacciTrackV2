@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Send, Sparkles, ShieldCheck, Languages, HelpCircle } from 'lucide-react';
+import { Bot, X, Send, ShieldCheck, HelpCircle, Volume2, VolumeX, RotateCcw, FileText, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { chatAPI } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface ChatMessage {
@@ -11,6 +13,7 @@ interface ChatMessage {
   text: string;
   timestamp: Date;
   suggestions?: string[];
+  actionType?: 'certificate' | 'schedule';
 }
 
 export const ENGLISH_QUESTIONS = [
@@ -40,16 +43,23 @@ export const HINGLISH_QUESTIONS = [
 ];
 
 const VaxBotChat: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [activePromptTab, setActivePromptTab] = useState<'hinglish' | 'english'>('hinglish');
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+
+  const initialWelcomeText = user?.name
+    ? `Namaste ${user.name}! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAapke bache ke vaccine updates, fever care, missed doses, ya certificate ke bare me kuch bhi puchein!`
+    : `Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!`;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'bot',
-      text: 'Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!\n\n👇 **Neeche diye gaye 10 Hinglish ya 10 English questions me se koi bhi click karein:**',
+      text: initialWelcomeText,
       timestamp: new Date(),
     },
   ]);
@@ -65,8 +75,58 @@ const VaxBotChat: React.FC = () => {
     if (isOpen) {
       scrollToBottom();
       inputRef.current?.focus();
+    } else {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setSpeakingMsgId(null);
+      }
     }
   }, [isOpen, messages, isTyping]);
+
+  const handleSpeak = (text: string, id: string) => {
+    if (!('speechSynthesis' in window)) return;
+
+    if (speakingMsgId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingMsgId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*_#`•\-]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.95;
+    utterance.onend = () => setSpeakingMsgId(null);
+    utterance.onerror = () => setSpeakingMsgId(null);
+    setSpeakingMsgId(id);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleResetChat = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingMsgId(null);
+    setMessages([
+      {
+        id: (Date.now()).toString(),
+        sender: 'bot',
+        text: initialWelcomeText,
+        timestamp: new Date(),
+      },
+    ]);
+  };
+
+  const detectAction = (text: string): 'certificate' | 'schedule' | undefined => {
+    const lower = text.toLowerCase();
+    if (lower.includes('certificate') || lower.includes('pdf') || lower.includes('praman patra')) {
+      return 'certificate';
+    }
+    if (lower.includes('schedule') || lower.includes('dates') || lower.includes('due date')) {
+      return 'schedule';
+    }
+    return undefined;
+  };
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputMessage).trim();
@@ -85,13 +145,14 @@ const VaxBotChat: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const res = await chatAPI.ask(text);
+      const res = await chatAPI.ask(text, { userName: user?.name, userRole: user?.role });
       const botResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
         text: res.reply,
         timestamp: new Date(),
         suggestions: res.suggestions && res.suggestions.length > 0 ? res.suggestions : undefined,
+        actionType: detectAction(res.reply),
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (err: any) {
@@ -170,7 +231,7 @@ const VaxBotChat: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[440px] h-[590px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[440px] h-[600px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-700 text-white p-4 flex items-center justify-between shadow-sm flex-shrink-0">
@@ -191,6 +252,14 @@ const VaxBotChat: React.FC = () => {
 
               <div className="flex items-center gap-1">
                 <button
+                  onClick={handleResetChat}
+                  className="p-1.5 rounded-xl hover:bg-white/15 text-white/80 hover:text-white transition-colors"
+                  title="Clear / Reset Conversation"
+                  aria-label="Reset conversation"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 rounded-xl hover:bg-white/15 text-white/80 hover:text-white transition-colors"
                   aria-label="Close chat"
@@ -200,7 +269,7 @@ const VaxBotChat: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick 10+10 Question Tabs Tray */}
+            {/* Quick 10+10 Question Tabs Tray (Clean scroll without ugly arrows) */}
             <div className="p-2.5 bg-muted/40 border-b border-border/60 flex-shrink-0">
               <div className="flex items-center justify-between mb-1.5 px-1">
                 <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
@@ -232,8 +301,8 @@ const VaxBotChat: React.FC = () => {
                 </div>
               </div>
 
-              {/* Horizontal Scroll of Questions */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+              {/* Seamless horizontal questions scroll */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 pt-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {currentQuestions.map((q, idx) => (
                   <button
                     key={idx}
@@ -265,13 +334,63 @@ const VaxBotChat: React.FC = () => {
 
                     <div
                       className={cn(
-                        'p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs',
+                        'p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs relative group',
                         msg.sender === 'user'
                           ? 'bg-teal-600 text-white rounded-tr-xs'
                           : 'bg-muted/70 text-foreground border border-border/70 rounded-tl-xs'
                       )}
                     >
                       {renderFormattedText(msg.text)}
+
+                      {/* Direct Action Shortcuts */}
+                      {msg.sender === 'bot' && msg.actionType === 'certificate' && (
+                        <div className="mt-3 pt-2 border-t border-border/60">
+                          <button
+                            onClick={() => {
+                              setIsOpen(false);
+                              navigate('/parent');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-xs"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Open Certificate Dashboard
+                          </button>
+                        </div>
+                      )}
+
+                      {msg.sender === 'bot' && msg.actionType === 'schedule' && (
+                        <div className="mt-3 pt-2 border-t border-border/60">
+                          <button
+                            onClick={() => {
+                              setIsOpen(false);
+                              navigate('/parent');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-xs"
+                          >
+                            <Calendar className="w-3.5 h-3.5" /> View Immunization Schedule
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Voice Speak Button on Bot messages */}
+                      {msg.sender === 'bot' && msg.id !== 'welcome' && (
+                        <button
+                          onClick={() => handleSpeak(msg.text, msg.id)}
+                          className="mt-2 text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/50 border border-border/60 transition-colors"
+                          title="Listen to this response"
+                        >
+                          {speakingMsgId === msg.id ? (
+                            <>
+                              <VolumeX className="w-3 h-3 text-rose-500 animate-pulse" />
+                              <span className="text-rose-500 font-semibold">Stop Voice</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3 text-primary" />
+                              <span>Listen (Suniye) 🔊</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
 

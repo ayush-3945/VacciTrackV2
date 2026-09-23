@@ -209,8 +209,9 @@ export const queryVaxbot = async (userMessage, context = {}) => {
 
   // 1. Direct Greetings
   if (/^(hi|hello|hey|namaste|pranam|halo|hola|help)$/i.test(cleanQuery)) {
+    const greeting = context?.userName ? `Namaste ${context.userName}! 👋` : `Namaste! 👋`;
     return {
-      reply: `Namaste! 👋 Main **VaxBot** hoon — VacciTrack ka AI Pediatric & Vaccine Guide.
+      reply: `${greeting} Main **VaxBot** hoon — VacciTrack ka AI Pediatric & Vaccine Guide.
       
 Main aapki madad kar sakta hoon:
 - 🌡️ Vaccine ke baad bukhar ya dard ka gharelu ilaj
