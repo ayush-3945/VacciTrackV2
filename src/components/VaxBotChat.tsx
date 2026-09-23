@@ -103,6 +103,28 @@ const VaxBotChat: React.FC = () => {
     }
   }, [isOpen, messages, isTyping]);
 
+  // Pre-load synthesis voices
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
+
+  const isHinglishText = (txt: string) => {
+    const hinglishKeywords = [
+      'kya', 'karein', 'kare', 'kaise', 'hai', 'hain', 'nahi', 'na', 'bhi', 'toh',
+      'baby ko', 'bache', 'bachhe', 'lagwana', 'padega', 'nehla', 'sakte', 'chhut',
+      'antar', 'sujan', 'dard', 'ilaj', 'fayda', 'kaun', 'bukhar', 'doodh', 'dawa',
+      'nishan', 'boond', 'sui', 'chahiye', 'shuru', 'jankari', 'namaste', 'gharelu',
+      'upay', 'sooti', 'stanpan', 'gungune', 'khansi', 'jaanleva'
+    ];
+    const lower = txt.toLowerCase();
+    return hinglishKeywords.some(kw => lower.includes(kw));
+  };
+
   const handleSpeak = (text: string, id: string) => {
     if (!('speechSynthesis' in window)) return;
 
@@ -114,8 +136,38 @@ const VaxBotChat: React.FC = () => {
 
     window.speechSynthesis.cancel();
     const cleanText = text.replace(/[*_#`•\-]/g, '');
+    const isHinglish = isHinglishText(cleanText) || activePromptTab === 'hinglish';
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 0.95;
+
+    // Get all available system & browser voices
+    const voices = window.speechSynthesis.getVoices();
+
+    if (isHinglish) {
+      utterance.lang = 'hi-IN';
+      // Look for Hindi (hi-IN) voice first, or Indian English (en-IN)
+      const indianVoice =
+        voices.find(v => v.lang.toLowerCase() === 'hi-in' || v.lang.toLowerCase().startsWith('hi')) ||
+        voices.find(v => v.lang.toLowerCase() === 'en-in') ||
+        voices.find(v => v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('hemant') || v.name.toLowerCase().includes('india'));
+
+      if (indianVoice) {
+        utterance.voice = indianVoice;
+      }
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+    } else {
+      utterance.lang = 'en-IN';
+      const englishVoice =
+        voices.find(v => v.lang.toLowerCase() === 'en-in') ||
+        voices.find(v => v.name.toLowerCase().includes('india')) ||
+        voices.find(v => v.lang.toLowerCase().startsWith('en'));
+
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      utterance.rate = 0.95;
+    }
+
     utterance.onend = () => setSpeakingMsgId(null);
     utterance.onerror = () => setSpeakingMsgId(null);
     setSpeakingMsgId(id);
