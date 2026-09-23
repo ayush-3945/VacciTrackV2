@@ -165,7 +165,11 @@ const VaxBotChat: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const res = await chatAPI.ask(text, { userName: user?.name, userRole: user?.role });
+      const res = await chatAPI.ask(text, {
+        userName: user?.name,
+        userRole: user?.role,
+        lang: activePromptTab,
+      });
       const botResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
