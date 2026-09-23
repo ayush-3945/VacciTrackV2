@@ -238,3 +238,14 @@ export const notificationsAPI = {
   },
 };
 
+// VaxBot AI Chat API
+export const chatAPI = {
+  ask: async (message, context = {}) => {
+    const response = await apiRequest('/chat/ask', {
+      method: 'POST',
+      body: JSON.stringify({ message, context }),
+    });
+    return response.data;
+  },
+};
+

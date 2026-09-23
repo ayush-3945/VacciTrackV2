@@ -12,6 +12,7 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import ChildDetail from "./pages/ChildDetail";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import NotFound from "./pages/NotFound";
+import VaxBotChat from "./components/VaxBotChat";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppRoutes />
+              <VaxBotChat />
             </BrowserRouter>
           </TooltipProvider>
         </LanguageProvider>
