@@ -51,18 +51,38 @@ const VaxBotChat: React.FC = () => {
   const [activePromptTab, setActivePromptTab] = useState<'hinglish' | 'english'>('hinglish');
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
 
-  const initialWelcomeText = user?.name
-    ? `Namaste ${user.name}! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAapke bache ke vaccine updates, fever care, missed doses, ya certificate ke bare me kuch bhi puchein!`
-    : `Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!`;
+  const getWelcomeText = (name?: string) =>
+    name
+      ? `Namaste ${name}! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAapke bache ke vaccine updates, fever care, missed doses, ya certificate ke bare me kuch bhi puchein!`
+      : `Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!`;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'bot',
-      text: initialWelcomeText,
+      text: getWelcomeText(user?.name),
       timestamp: new Date(),
     },
   ]);
+
+  // Synchronize welcome message when user authentication loads
+  useEffect(() => {
+    if (user?.name) {
+      setMessages(prev => {
+        if (prev.length === 1 && prev[0].id === 'welcome') {
+          return [
+            {
+              id: 'welcome',
+              sender: 'bot',
+              text: getWelcomeText(user.name),
+              timestamp: prev[0].timestamp,
+            },
+          ];
+        }
+        return prev;
+      });
+    }
+  }, [user?.name]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -109,9 +129,9 @@ const VaxBotChat: React.FC = () => {
     setSpeakingMsgId(null);
     setMessages([
       {
-        id: (Date.now()).toString(),
+        id: 'welcome',
         sender: 'bot',
-        text: initialWelcomeText,
+        text: getWelcomeText(user?.name),
         timestamp: new Date(),
       },
     ]);
@@ -342,7 +362,7 @@ const VaxBotChat: React.FC = () => {
                     >
                       {renderFormattedText(msg.text)}
 
-                      {/* Direct Action Shortcuts */}
+                      {/* Quick Action Shortcuts for Certificate or Schedule */}
                       {msg.sender === 'bot' && msg.actionType === 'certificate' && (
                         <div className="mt-3 pt-2 border-t border-border/60">
                           <button
@@ -371,11 +391,35 @@ const VaxBotChat: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Voice Speak Button on Bot messages */}
-                      {msg.sender === 'bot' && msg.id !== 'welcome' && (
+                      {/* Welcome message quick shortcuts */}
+                      {msg.sender === 'bot' && msg.id === 'welcome' && (
+                        <div className="mt-3 pt-2.5 border-t border-border/60 flex flex-wrap gap-2">
+                          <button
+                            onClick={() => {
+                              setIsOpen(false);
+                              navigate('/parent');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-600/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-medium hover:bg-teal-600 hover:text-white transition-all shadow-xs"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Download Certificate
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsOpen(false);
+                              navigate('/parent');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-600/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-medium hover:bg-teal-600 hover:text-white transition-all shadow-xs"
+                          >
+                            <Calendar className="w-3.5 h-3.5" /> Full Schedule
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Voice Speak Button on ALL Bot messages */}
+                      {msg.sender === 'bot' && (
                         <button
                           onClick={() => handleSpeak(msg.text, msg.id)}
-                          className="mt-2 text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/50 border border-border/60 transition-colors"
+                          className="mt-2 text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/80 border border-border/70 transition-colors"
                           title="Listen to this response"
                         >
                           {speakingMsgId === msg.id ? (
@@ -386,7 +430,7 @@ const VaxBotChat: React.FC = () => {
                           ) : (
                             <>
                               <Volume2 className="w-3 h-3 text-primary" />
-                              <span>Listen (Suniye) 🔊</span>
+                              <span className="font-medium">Listen (Suniye) 🔊</span>
                             </>
                           )}
                         </button>
