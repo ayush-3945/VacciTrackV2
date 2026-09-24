@@ -31,7 +31,7 @@ const DEMO_USERS: User[] = [
     id: 'user_parent_1',
     email: 'parent@demo.com',
     password: 'password123',
-    name: 'Priya Sharma',
+    name: 'Ananya Sharma',
     role: 'parent',
     phone: '+91 98765 43210',
   },

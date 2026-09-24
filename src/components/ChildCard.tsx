@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  AlertTriangle,
   FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -172,8 +173,8 @@ const ChildCard: React.FC<ChildCardProps> = ({
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs"
                 title={`${overdueCount} vaccinations require immediate attention`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                <span>⚠️ {overdueCount} Overdue</span>
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>{overdueCount} Overdue</span>
               </motion.div>
             )}
 
@@ -290,7 +291,14 @@ const ChildCard: React.FC<ChildCardProps> = ({
               : "bg-teal-500/10 border-teal-500/25 text-teal-800 dark:text-teal-200"
           )}>
             <div className="flex items-center gap-1.5 truncate">
-              <span className="font-semibold">{nextChildVaccine.status === 'OVERDUE' ? '⚠️ Due Now:' : 'Next Dose:'}</span>
+              {nextChildVaccine.status === 'OVERDUE' ? (
+                <span className="font-semibold inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                  Due Now:
+                </span>
+              ) : (
+                <span className="font-semibold">Next Dose:</span>
+              )}
               <span className="font-bold truncate">{nextChildVaccine.name}</span>
             </div>
             <span className="text-[11px] font-mono whitespace-nowrap opacity-90 font-medium">

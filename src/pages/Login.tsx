@@ -190,7 +190,7 @@ const Login: React.FC = () => {
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-all shadow-xs"
             >
               <MapPin className="w-3.5 h-3.5 text-teal-600" />
-              <span>Find Centers 📍</span>
+              <span>Find Centers</span>
             </button>
 
             <button
@@ -228,8 +228,8 @@ const Login: React.FC = () => {
                   transition={{ duration: 0.4 }}
                   className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs mb-3.5 backdrop-blur-xs"
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>🛡️ National Immunization Schedule (NIS) 2025 Compliant • ABHA Linked</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>National Immunization Schedule (NIS) 2025 Compliant • ABHA Linked</span>
                 </motion.div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-display tracking-tight text-foreground mb-2 sm:mb-3">
@@ -649,19 +649,19 @@ const Login: React.FC = () => {
       <footer className="relative z-20 pb-4 pt-3 px-4 border-t border-border/40 mt-auto">
         <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs font-medium text-muted-foreground">
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-emerald-500/30 transition-colors">
-            <span>🛡️</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
             <span>25+ NIS Vaccines</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-teal-500/30 transition-colors">
-            <span>🔐</span>
+            <Lock className="w-3.5 h-3.5 text-teal-500" />
             <span>OTP Verified</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-cyan-500/30 transition-colors">
-            <span>🪪</span>
+            <BadgeCheck className="w-3.5 h-3.5 text-cyan-500" />
             <span>ABHA Integrated</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-blue-500/30 transition-colors">
-            <span>🌐</span>
+            <Globe className="w-3.5 h-3.5 text-blue-500" />
             <span>English & हिन्दी</span>
           </div>
         </div>

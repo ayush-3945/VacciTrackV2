@@ -13,7 +13,8 @@ import {
   Search, 
   MapPin, 
   ExternalLink,
-  FileText
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, differenceInDays } from 'date-fns';
@@ -314,11 +315,11 @@ const ParentDashboard: React.FC = () => {
         >
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 mb-2 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>🛡️ National Immunization Schedule (NIS) 2025 Compliant</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>National Immunization Schedule (NIS) 2025 Compliant</span>
             </div>
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-foreground tracking-tight">
-              Welcome back, <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span>! 👋
+              Welcome back, <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span>
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Track and manage your family's vaccination milestones with official ABHA verification.
@@ -410,24 +411,44 @@ const ParentDashboard: React.FC = () => {
                         ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
                         : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
                     )}>
-                      <span className={cn("w-1.5 h-1.5 rounded-full", isOverdue ? "bg-rose-500 animate-ping" : "bg-amber-500 animate-pulse")} />
-                      {isOverdue ? "🚨 Critical Attention" : "⚡ Priority Milestone"}
+                      {isOverdue ? (
+                        <>
+                          <AlertTriangle className="w-3 h-3 text-rose-500 shrink-0" />
+                          <span>Critical Attention</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-3 h-3 text-amber-500 shrink-0" />
+                          <span>Priority Milestone</span>
+                        </>
+                      )}
                     </span>
 
                     {/* Clean Countdown Badge */}
                     <span className={cn(
-                      "px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
+                      "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
                       isOverdue
                         ? "bg-rose-500 text-white border-rose-600"
                         : isDueToday
                           ? "bg-amber-500 text-white border-amber-600"
                           : "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40"
                     )}>
-                      {isOverdue
-                        ? `⚠️ ${Math.abs(daysDiff)} ${t('overdueDays')}`
-                        : isDueToday
-                          ? "🚨 Due Today!"
-                          : `⏱️ ${daysDiff} ${t('daysRemaining')}`}
+                      {isOverdue ? (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 text-white shrink-0" />
+                          <span>{Math.abs(daysDiff)} {t('overdueDays')}</span>
+                        </>
+                      ) : isDueToday ? (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
+                          <span>Due Today!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300 shrink-0" />
+                          <span>{daysDiff} {t('daysRemaining')}</span>
+                        </>
+                      )}
                     </span>
                   </div>
 
@@ -513,7 +534,8 @@ const ParentDashboard: React.FC = () => {
                 onClick={() => navigate('/centers')}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
               >
-                <span>Explore Centers Map 📍</span>
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Explore Centers Map</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -560,13 +582,14 @@ const ParentDashboard: React.FC = () => {
                   type="button"
                   onClick={() => setFilterStatus('overdue')}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl transition-all flex items-center gap-1",
+                    "px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5",
                     filterStatus === 'overdue'
                       ? "bg-rose-500 text-white shadow-xs font-bold"
                       : "text-rose-600 dark:text-rose-400 hover:text-rose-700"
                   )}
                 >
-                  <span>⚠️ Needs Dose</span>
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  <span>Needs Dose</span>
                   <span>({overdueChildrenCount})</span>
                 </button>
                 <button
