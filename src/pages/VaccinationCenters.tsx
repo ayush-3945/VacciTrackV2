@@ -19,7 +19,8 @@ import {
   X,
   Sparkles,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Maximize2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { centersAPI, childrenAPI } from '@/lib/api';
@@ -364,6 +365,7 @@ const VaccinationCenters: React.FC = () => {
   const [isLocating, setIsLocating] = useState(false);
   const [mapTarget, setMapTarget] = useState<[number, number]>(defaultCoords);
   const [mapZoom, setMapZoom] = useState(13);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   // Booking Modal State
   const [bookingModalCenter, setBookingModalCenter] = useState<VaccineCenterData | null>(null);
@@ -599,7 +601,7 @@ const VaccinationCenters: React.FC = () => {
               </div>
             </div>
 
-            {/* GPS Locate Me Button & Search */}
+            {/* GPS Locate Me Button, Google Maps & Search */}
             <div className="flex flex-wrap items-center gap-2.5">
               <Button
                 variant="outline"
@@ -610,6 +612,29 @@ const VaccinationCenters: React.FC = () => {
               >
                 <Navigation className={cn('w-3.5 h-3.5 text-teal-600', isLocating && 'animate-spin')} />
                 {isLocating ? 'Locating...' : 'Locate Me (GPS)'}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const coords = userCoords ? `${userCoords.lat},${userCoords.lng}` : `${defaultCoords[0]},${defaultCoords[1]}`;
+                  window.open(`https://www.google.com/maps/search/vaccination+center/@${coords},13z`, '_blank');
+                }}
+                className="gap-1.5 rounded-xl border-border bg-background hover:bg-muted text-xs font-semibold"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
+                Open Google Maps
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsMapModalOpen(true)}
+                className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                View Fullscreen Map
               </Button>
 
               <div className="relative flex-1 sm:w-64">
@@ -673,53 +698,63 @@ const VaccinationCenters: React.FC = () => {
           </div>
         </section>
 
-        {/* Split Screen Workspace: Center Cards List + Interactive Leaflet Map */}
-        <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-[calc(100vh-145px)]">
-          {/* Left Column: Center Cards Directory */}
-          <div className="w-full lg:w-[460px] xl:w-[500px] h-[45vh] lg:h-full overflow-y-auto bg-card border-r border-border p-3 sm:p-4 space-y-3 flex-shrink-0">
-            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-              <span>Showing <strong>{centersWithDistance.length}</strong> Centers near you</span>
+        {/* Full-width Responsive Grid: All 11 Centers Side-by-Side */}
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+          {/* Subheader info bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-card/60 backdrop-blur-xs p-4 rounded-2xl border border-border/80 shadow-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-foreground">
+                Showing <strong className="text-teal-600 dark:text-teal-400 font-bold">{centersWithDistance.length}</strong> Centers near you
+              </span>
               {userCoords && (
-                <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center gap-1">
                   📍 Origin: Live GPS
                 </span>
               )}
             </div>
 
-            {loading ? (
-              <div className="py-12 text-center space-y-3">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-xs text-muted-foreground">Finding nearby verified centers...</p>
-              </div>
-            ) : centersWithDistance.length === 0 ? (
-              <div className="py-12 text-center p-6 bg-muted/40 rounded-2xl border border-dashed border-border space-y-2">
-                <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto" />
-                <h4 className="text-sm font-semibold text-foreground">No Centers Found</h4>
-                <p className="text-xs text-muted-foreground">Try clearing search filters or checking a different pincode.</p>
-                <Button size="sm" variant="outline" onClick={() => { setSearchQuery(''); setSelectedType('all'); setInStockOnly(false); }}>
-                  Reset Filters
-                </Button>
-              </div>
-            ) : (
-              centersWithDistance.map(center => {
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              Verified Indian centers arranged side-by-side & sorted by driving distance
+            </p>
+          </div>
+
+          {/* Cards Grid */}
+          {loading ? (
+            <div className="py-24 text-center space-y-3">
+              <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-sm text-muted-foreground">Finding nearby verified centers...</p>
+            </div>
+          ) : centersWithDistance.length === 0 ? (
+            <div className="py-20 text-center p-8 bg-muted/30 rounded-3xl border border-dashed border-border max-w-md mx-auto space-y-3">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
+              <h4 className="text-base font-semibold text-foreground">No Centers Found</h4>
+              <p className="text-xs text-muted-foreground">Try clearing search filters or checking a different pincode.</p>
+              <Button size="sm" variant="outline" onClick={() => { setSearchQuery(''); setSelectedType('all'); setInStockOnly(false); }}>
+                Reset Filters
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {centersWithDistance.map(center => {
                 const isSelected = selectedCenter?._id === center._id;
 
                 return (
                   <motion.div
                     key={center._id}
-                    whileHover={{ y: -2 }}
-                    transition={{ duration: 0.15 }}
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => handleSelectCenter(center)}
                     className={cn(
-                      'p-4 rounded-2xl border transition-all cursor-pointer relative',
+                      'p-5 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer',
                       isSelected
-                        ? 'bg-teal-50/50 dark:bg-teal-950/20 border-teal-500 shadow-md ring-2 ring-teal-500/20'
-                        : 'bg-card hover:bg-muted/40 border-border shadow-xs'
+                        ? 'bg-card border-teal-500 shadow-md ring-2 ring-teal-500/20'
+                        : 'bg-card hover:bg-card/90 hover:border-teal-500/50 border-border shadow-xs'
                     )}
                   >
-                    {/* Header info */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
+                    <div>
+                      {/* Top Badges */}
+                      <div className="flex items-center gap-1.5 flex-wrap justify-between mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span
                             className={cn(
@@ -737,70 +772,78 @@ const VaccinationCenters: React.FC = () => {
                               <ShieldCheck className="w-3 h-3" /> Free NIS
                             </span>
                           )}
-
-                          <span
-                            className={cn(
-                              'px-1.5 py-0.5 rounded-md text-[10px] font-medium ml-auto',
-                              center.liveStockStatus === 'in_stock' && 'text-emerald-600 bg-emerald-500/10',
-                              center.liveStockStatus === 'limited' && 'text-amber-600 bg-amber-500/10',
-                              center.liveStockStatus === 'out_of_stock' && 'text-rose-600 bg-rose-500/10'
-                            )}
-                          >
-                            ● {center.liveStockStatus === 'in_stock' ? 'In Stock' : center.liveStockStatus === 'limited' ? 'Limited' : 'Out of Stock'}
-                          </span>
                         </div>
 
-                        <h3 className="font-bold text-sm sm:text-base text-foreground mt-1.5 leading-snug">
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-md text-[10px] font-medium',
+                            center.liveStockStatus === 'in_stock' && 'text-emerald-600 bg-emerald-500/10',
+                            center.liveStockStatus === 'limited' && 'text-amber-600 bg-amber-500/10',
+                            center.liveStockStatus === 'out_of_stock' && 'text-rose-600 bg-rose-500/10'
+                          )}
+                        >
+                          ● {center.liveStockStatus === 'in_stock' ? 'In Stock' : center.liveStockStatus === 'limited' ? 'Limited' : 'Out of Stock'}
+                        </span>
+                      </div>
+
+                      {/* Center Name & Distance */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold text-base text-foreground leading-snug">
                           {center.name}
                         </h3>
-
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                          {center.address}, {center.city} - {center.pincode}
-                        </p>
+                        <div className="flex flex-col items-end flex-shrink-0">
+                          <span className="px-2.5 py-1 rounded-xl bg-teal-600/10 text-teal-700 dark:text-teal-300 text-xs font-bold whitespace-nowrap">
+                            📍 {center.distanceKm} km
+                          </span>
+                          <span className="text-[10px] text-muted-foreground mt-0.5">★ {center.rating}</span>
+                        </div>
                       </div>
 
-                      {/* Distance Badge */}
-                      <div className="flex flex-col items-end flex-shrink-0">
-                        <span className="px-2 py-1 rounded-xl bg-teal-600/10 text-teal-700 dark:text-teal-300 text-xs font-bold whitespace-nowrap">
-                          📍 {center.distanceKm} km
+                      {/* Address */}
+                      <p className="text-xs text-muted-foreground mb-3 flex items-start gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <span>{center.address}, {center.city} - {center.pincode}</span>
+                      </p>
+
+                      {/* Timing & Phone */}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground py-2 border-y border-border/60 mb-3">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground" /> {center.timing}
                         </span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5">★ {center.rating}</span>
-                      </div>
-                    </div>
-
-                    {/* Timings and Phone */}
-                    <div className="flex items-center gap-4 mt-2.5 pt-2 border-t border-border/60 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-muted-foreground" /> {center.timing}
-                      </span>
-                      <a
-                        href={`tel:${center.contactNumber}`}
-                        onClick={e => e.stopPropagation()}
-                        className="flex items-center gap-1 text-teal-600 hover:underline ml-auto"
-                      >
-                        <Phone className="w-3.5 h-3.5" /> Call
-                      </a>
-                    </div>
-
-                    {/* Vaccines Available Pills */}
-                    <div className="flex flex-wrap gap-1 mt-2.5">
-                      {center.availableVaccines.slice(0, 5).map((vac, vIdx) => (
-                        <span
-                          key={vIdx}
-                          className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted text-muted-foreground border border-border"
+                        <a
+                          href={`tel:${center.contactNumber}`}
+                          onClick={e => e.stopPropagation()}
+                          className="flex items-center gap-1 text-teal-600 hover:underline font-semibold"
                         >
-                          {vac}
+                          <Phone className="w-3.5 h-3.5" /> Call
+                        </a>
+                      </div>
+
+                      {/* Available Vaccines Chips */}
+                      <div className="mb-4">
+                        <span className="text-[11px] font-semibold text-muted-foreground block mb-1.5">
+                          Available Vaccines:
                         </span>
-                      ))}
-                      {center.availableVaccines.length > 5 && (
-                        <span className="px-1.5 py-0.5 rounded-md text-[10px] text-muted-foreground bg-muted font-medium">
-                          +{center.availableVaccines.length - 5} more
-                        </span>
-                      )}
+                        <div className="flex flex-wrap gap-1">
+                          {center.availableVaccines.slice(0, 5).map((vac, vIdx) => (
+                            <span
+                              key={vIdx}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted text-muted-foreground border border-border"
+                            >
+                              {vac}
+                            </span>
+                          ))}
+                          {center.availableVaccines.length > 5 && (
+                            <span className="px-1.5 py-0.5 rounded-md text-[10px] text-muted-foreground bg-muted font-medium">
+                              +{center.availableVaccines.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-border/60">
+                    <div className="flex items-center gap-2 pt-3 border-t border-border/60">
                       <Button
                         size="sm"
                         variant="outline"
@@ -808,9 +851,9 @@ const VaccinationCenters: React.FC = () => {
                           e.stopPropagation();
                           handleOpenDirections(center);
                         }}
-                        className="flex-1 rounded-xl text-xs h-8 gap-1 border-border hover:bg-muted font-medium"
+                        className="flex-1 rounded-xl text-xs h-9 gap-1.5 border-border hover:bg-muted font-medium"
                       >
-                        <ExternalLink className="w-3.5 h-3.5 text-teal-600" /> Directions
+                        <ExternalLink className="w-3.5 h-3.5 text-teal-600" /> Google Maps
                       </Button>
 
                       <Button
@@ -821,135 +864,186 @@ const VaccinationCenters: React.FC = () => {
                           setRequestedVaccine(center.availableVaccines[0] || 'Pentavalent');
                           setBookingSuccessData(null);
                         }}
-                        className="flex-1 rounded-xl text-xs h-8 gap-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs"
+                        className="flex-1 rounded-xl text-xs h-9 gap-1.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs"
                       >
                         <Calendar className="w-3.5 h-3.5" /> Book Slot
                       </Button>
                     </div>
                   </motion.div>
                 );
-              })
-            )}
-          </div>
-
-          {/* Right Column: Leaflet Interactive Map View */}
-          <div className="flex-1 w-full h-[55vh] lg:h-full min-h-[500px] relative z-0">
-            <MapContainer
-              center={mapTarget}
-              zoom={mapZoom}
-              scrollWheelZoom={true}
-              style={{ width: '100%', height: '100%', minHeight: '500px' }}
-              className="w-full h-full"
-            >
-              {/* 100% Free OpenStreetMap Tiles — No API key, No watermark */}
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
-              />
-
-              <MapController centerCoords={mapTarget} zoomLevel={mapZoom} />
-
-              {/* User Live Location Marker */}
-              {userCoords && (
-                <Marker position={[userCoords.lat, userCoords.lng]} icon={userLocationIcon}>
-                  <Popup>
-                    <div className="p-1 text-center">
-                      <p className="font-bold text-xs text-rose-600">📍 You Are Here</p>
-                      <p className="text-[10px] text-muted-foreground">Live GPS Location</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-
-              {/* Vaccine Centers Markers */}
-              {centersWithDistance.map(center => {
-                const isSelected = selectedCenter?._id === center._id;
-
-                return (
-                  <Marker
-                    key={center._id}
-                    position={[center.coordinates?.lat ?? defaultCoords[0], center.coordinates?.lng ?? defaultCoords[1]]}
-                    icon={createMarkerIcon(center.type, isSelected)}
-                    eventHandlers={{
-                      click: () => handleSelectCenter(center),
-                    }}
-                  >
-                    <Popup className="custom-leaflet-popup">
-                      <div className="p-2 max-w-[260px]">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <span
-                            className={cn(
-                              'px-1.5 py-0.5 rounded text-[9px] font-bold uppercase',
-                              center.type === 'government_phc' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                            )}
-                          >
-                            {center.type === 'government_phc' ? 'Govt PHC' : 'Hospital'}
-                          </span>
-                          {center.isGovernmentFree && (
-                            <span className="text-[9px] font-bold text-emerald-600">Free NIS 2025</span>
-                          )}
-                          <span className="ml-auto text-[10px] font-bold text-teal-700">
-                            {center.distanceKm} km
-                          </span>
-                        </div>
-
-                        <h4 className="font-bold text-xs text-gray-900 leading-tight">
-                          {center.name}
-                        </h4>
-
-                        <p className="text-[11px] text-gray-600 mt-1">
-                          {center.address}
-                        </p>
-
-                        <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {center.timing}
-                        </p>
-
-                        <div className="mt-2.5 pt-2 border-t border-gray-200 flex gap-1.5">
-                          <button
-                            onClick={() => handleOpenDirections(center)}
-                            className="flex-1 py-1 rounded bg-teal-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1"
-                          >
-                            <Navigation className="w-3 h-3" /> Directions
-                          </button>
-                          <a
-                            href={`tel:${center.contactNumber}`}
-                            className="px-2 py-1 rounded bg-gray-100 text-gray-800 text-[11px] font-semibold flex items-center justify-center"
-                          >
-                            <Phone className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
               })}
-            </MapContainer>
+            </div>
+          )}
+        </div>
+      </main>
 
-            {/* Map Legend Overlay */}
-            <div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-md p-3 rounded-2xl border border-border shadow-lg z-[400] text-xs space-y-1.5 hidden sm:block">
-              <span className="font-bold text-[11px] text-foreground block mb-1">Center Types</span>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="w-3 h-3 rounded-full bg-emerald-600" />
-                <span>Govt PHC (100% Free)</span>
+      {/* Fullscreen Interactive Map View Modal */}
+      <AnimatePresence>
+        {isMapModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col p-3 sm:p-6 animate-in fade-in duration-200">
+            <div className="bg-card rounded-3xl border border-border shadow-2xl flex-1 flex flex-col overflow-hidden max-w-6xl mx-auto w-full">
+              {/* Modal Header */}
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+                      Interactive Map Locator
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-semibold border border-emerald-500/20">
+                        {centersWithDistance.length} Centers
+                      </span>
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Click any pin to inspect stock, contact info, or launch Google Maps directions
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const coords = userCoords ? `${userCoords.lat},${userCoords.lng}` : `${defaultCoords[0]},${defaultCoords[1]}`;
+                      window.open(`https://www.google.com/maps/search/vaccination+center/@${coords},13z`, '_blank');
+                    }}
+                    className="gap-1.5 rounded-xl text-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
+                    Open Google Maps
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMapModalOpen(false)}
+                    className="rounded-xl hover:bg-muted"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="w-3 h-3 rounded-full bg-blue-600" />
-                <span>AIIMS / District Hospital</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="w-3 h-3 rounded-full bg-purple-600" />
-                <span>Private Pediatric Clinic</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-1 border-t border-border/60">
-                <span className="w-3 h-3 rounded-full bg-rose-600" />
-                <span>Your Live Location</span>
+
+              {/* Map Container inside Modal */}
+              <div className="flex-1 w-full relative min-h-[450px]">
+                <MapContainer
+                  center={mapTarget}
+                  zoom={mapZoom}
+                  scrollWheelZoom={true}
+                  style={{ width: '100%', height: '100%', minHeight: '450px' }}
+                  className="w-full h-full"
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={19}
+                  />
+
+                  <MapController centerCoords={mapTarget} zoomLevel={mapZoom} />
+
+                  {/* User Live Location Marker */}
+                  {userCoords && (
+                    <Marker position={[userCoords.lat, userCoords.lng]} icon={userLocationIcon}>
+                      <Popup>
+                        <div className="p-1 text-center">
+                          <p className="font-bold text-xs text-rose-600">📍 You Are Here</p>
+                          <p className="text-[10px] text-muted-foreground">Live GPS Location</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )}
+
+                  {/* Vaccine Centers Markers */}
+                  {centersWithDistance.map(center => {
+                    const isSelected = selectedCenter?._id === center._id;
+
+                    return (
+                      <Marker
+                        key={center._id}
+                        position={[center.coordinates?.lat ?? defaultCoords[0], center.coordinates?.lng ?? defaultCoords[1]]}
+                        icon={createMarkerIcon(center.type, isSelected)}
+                        eventHandlers={{
+                          click: () => handleSelectCenter(center),
+                        }}
+                      >
+                        <Popup className="custom-leaflet-popup">
+                          <div className="p-2 max-w-[260px]">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span
+                                className={cn(
+                                  'px-1.5 py-0.5 rounded text-[9px] font-bold uppercase',
+                                  center.type === 'government_phc' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                                )}
+                              >
+                                {center.type === 'government_phc' ? 'Govt PHC' : 'Hospital'}
+                              </span>
+                              {center.isGovernmentFree && (
+                                <span className="text-[9px] font-bold text-emerald-600">Free NIS 2025</span>
+                              )}
+                              <span className="ml-auto text-[10px] font-bold text-teal-700">
+                                {center.distanceKm} km
+                              </span>
+                            </div>
+
+                            <h4 className="font-bold text-xs text-gray-900 leading-tight">
+                              {center.name}
+                            </h4>
+
+                            <p className="text-[11px] text-gray-600 mt-1">
+                              {center.address}
+                            </p>
+
+                            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> {center.timing}
+                            </p>
+
+                            <div className="mt-2.5 pt-2 border-t border-gray-200 flex gap-1.5">
+                              <button
+                                onClick={() => handleOpenDirections(center)}
+                                className="flex-1 py-1 rounded bg-teal-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1"
+                              >
+                                <Navigation className="w-3 h-3" /> Directions
+                              </button>
+                              <a
+                                href={`tel:${center.contactNumber}`}
+                                className="px-2 py-1 rounded bg-gray-100 text-gray-800 text-[11px] font-semibold flex items-center justify-center"
+                              >
+                                <Phone className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+                </MapContainer>
+
+                {/* Map Legend Overlay */}
+                <div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-md p-3 rounded-2xl border border-border shadow-lg z-[400] text-xs space-y-1.5 hidden sm:block">
+                  <span className="font-bold text-[11px] text-foreground block mb-1">Center Types</span>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="w-3 h-3 rounded-full bg-emerald-600" />
+                    <span>Govt PHC (100% Free)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="w-3 h-3 rounded-full bg-blue-600" />
+                    <span>AIIMS / District Hospital</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="w-3 h-3 rounded-full bg-purple-600" />
+                    <span>Private Pediatric Clinic</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-1 border-t border-border/60">
+                    <span className="w-3 h-3 rounded-full bg-rose-600" />
+                    <span>Your Live Location</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        )}
+      </AnimatePresence>
 
       {/* Booking Slot Modal */}
       <AnimatePresence>
