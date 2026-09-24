@@ -209,44 +209,44 @@ const ChildCard: React.FC<ChildCardProps> = ({
         </div>
 
         {/* Middle Section: Elevated Stats & Shield Badge */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 items-stretch mb-4">
           {/* Stats Chips & Progress Gauge (2 cols) */}
-          <div className="sm:col-span-2 space-y-3">
+          <div className="sm:col-span-2 space-y-3 flex flex-col justify-between">
             {/* 3 Sleek Glass Stat Counters */}
-            <div className="grid grid-cols-3 gap-2.5">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 text-center relative overflow-hidden group/stat hover:border-emerald-500/50 transition-colors shadow-2xs">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center relative overflow-hidden group/stat hover:border-emerald-500/50 transition-colors shadow-2xs">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
                   <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Completed</span>
                 </div>
-                <p className="text-2xl font-black font-display text-emerald-600 dark:text-emerald-400 leading-tight">
+                <p className="text-xl sm:text-2xl font-black font-display text-emerald-600 dark:text-emerald-400 leading-tight">
                   {completedCount}
                 </p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 text-center relative overflow-hidden group/stat hover:border-amber-500/50 transition-colors shadow-2xs">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center relative overflow-hidden group/stat hover:border-amber-500/50 transition-colors shadow-2xs">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <Clock className="w-3 h-3 text-amber-500 shrink-0" />
                   <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Pending</span>
                 </div>
-                <p className="text-2xl font-black font-display text-amber-600 dark:text-amber-400 leading-tight">
+                <p className="text-xl sm:text-2xl font-black font-display text-amber-600 dark:text-amber-400 leading-tight">
                   {pendingCount}
                 </p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent border border-rose-500/30 text-center relative overflow-hidden group/stat hover:border-rose-500/50 transition-colors shadow-2xs">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-center relative overflow-hidden group/stat hover:border-rose-500/50 transition-colors shadow-2xs">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                  <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
                   <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Overdue</span>
                 </div>
-                <p className="text-2xl font-black font-display text-rose-600 dark:text-rose-400 leading-tight">
+                <p className="text-xl sm:text-2xl font-black font-display text-rose-600 dark:text-rose-400 leading-tight">
                   {overdueCount}
                 </p>
               </div>
             </div>
 
             {/* Dynamic Immunity Health Gauge */}
-            <div className="space-y-2 pt-1">
+            <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5 font-bold text-foreground">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -259,7 +259,7 @@ const ChildCard: React.FC<ChildCardProps> = ({
                   <strong className="text-foreground font-bold">{completedCount}</strong> of {totalCount} Doses
                 </span>
               </div>
-              <div className="w-full h-3 bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/70 shadow-inner">
+              <div className="w-full h-2.5 bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/70 shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
@@ -272,12 +272,13 @@ const ChildCard: React.FC<ChildCardProps> = ({
             </div>
           </div>
 
-          {/* Shield Badge (1 col) */}
-          <div className="flex justify-center sm:justify-end">
+          {/* Shield Tier Badge (1 col, perfectly aligned container) */}
+          <div className="sm:col-span-1 flex">
             <ShieldBadge
               completedCount={completedCount}
               totalCount={totalCount}
               size="md"
+              showContainer={true}
             />
           </div>
         </div>
