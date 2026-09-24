@@ -283,26 +283,49 @@ const ParentDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-teal-500/20">
+      {/* Ambient Glowing Gradients & Dot Grid Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.08] dark:opacity-[0.14]" />
+        <div className="absolute -top-32 left-1/3 w-[600px] h-[350px] bg-gradient-to-b from-teal-500/15 via-emerald-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 -right-48 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      </div>
+
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         {/* Welcome Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
-          <h1 className="font-display font-bold text-3xl text-foreground mb-2">
-            Welcome back, {user?.name?.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Track and manage your children's immunization records
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 mb-2 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>🛡️ National Immunization Schedule (NIS) 2025 Compliant</span>
+            </div>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-foreground tracking-tight">
+              Welcome back, <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span>! 👋
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Track and manage your family's vaccination milestones with official ABHA verification.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => navigate('/centers')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-all shadow-2xs"
+            >
+              <MapPin className="w-3.5 h-3.5 text-teal-600" />
+              <span>Find Centers 📍</span>
+            </button>
+          </div>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
           <StatsCard
             title={t('completedVaccines')}
             value={totalStats.completed}
@@ -316,138 +339,167 @@ const ParentDashboard: React.FC = () => {
             subtitle="Due within 7 days"
             icon={Clock}
             variant="warning"
-            delay={0.1}
+            delay={0.08}
           />
           <StatsCard
             title={t('missedVaccines')}
             value={totalStats.overdue}
             icon={AlertTriangle}
             variant="danger"
-            delay={0.2}
+            delay={0.16}
           />
           <StatsCard
             title={t('upcomingVaccines')}
             value={totalStats.upcoming}
             icon={Calendar}
-            delay={0.3}
+            delay={0.24}
           />
         </div>
 
-        {/* Nearby Vaccination Centers Banner */}
-        <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-teal-500/5 border border-teal-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="font-bold text-sm sm:text-base text-foreground font-display">
-                  Find Government PHCs & Vaccine Centers Nearby
-                </h4>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white">
-                  Live Map
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Discover nearby centers with live stock of NIS 2025 vaccines, walk-in timings & turn-by-turn directions
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/centers')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap self-start sm:self-auto"
-          >
-            <span>Explore Centers Map 📍</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        {/* Dual Action Banners Grid: Next Vaccine Priority Alert + Government PHC Locator */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 mb-8 items-stretch">
+          {/* Next Vaccine Priority Alert Banner */}
+          {nextVaccine ? (() => {
+            const daysDiff = differenceInDays(nextVaccine.vaccine.dueDate, new Date());
+            const isOverdue = daysDiff < 0;
+            const isDueToday = daysDiff === 0;
 
-        {/* Next Vaccine Priority Alert Banner */}
-        {nextVaccine && (() => {
-          const daysDiff = differenceInDays(nextVaccine.vaccine.dueDate, new Date());
-          const isOverdue = daysDiff < 0;
-          const isDueToday = daysDiff === 0;
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+                className={cn(
+                  "p-5 sm:p-6 rounded-3xl border backdrop-blur-xl transition-all shadow-md relative overflow-hidden flex flex-col justify-between group",
+                  isOverdue
+                    ? "bg-gradient-to-br from-rose-500/15 via-card/90 to-card border-rose-500/35 hover:border-rose-500/60 hover:shadow-rose-500/10"
+                    : "bg-gradient-to-br from-amber-500/15 via-card/90 to-card border-amber-500/35 hover:border-amber-500/60 hover:shadow-amber-500/10"
+                )}
+              >
+                {/* Soft Ambient Glow */}
+                <div className={cn(
+                  "absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-40",
+                  isOverdue ? "bg-rose-500/25" : "bg-amber-500/25"
+                )} />
 
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.3 }}
-              className={cn(
-                "mb-8 p-5 sm:p-6 rounded-3xl border backdrop-blur-xl transition-all shadow-md relative overflow-hidden",
-                isOverdue
-                  ? "bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border-rose-500/30 hover:border-rose-500/50"
-                  : "bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/30 hover:border-amber-500/50"
-              )}
-            >
-              {/* Soft Ambient Glow */}
-              <div className={cn(
-                "absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-40",
-                isOverdue ? "bg-rose-500/25" : "bg-amber-500/25"
-              )} />
+                <div>
+                  {/* Status Badges */}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className={cn(
+                      "px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border flex items-center gap-1.5",
+                      isOverdue
+                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                        : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                    )}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full", isOverdue ? "bg-rose-500 animate-ping" : "bg-amber-500 animate-pulse")} />
+                      {isOverdue ? "🚨 Critical Attention" : "⚡ Priority Milestone"}
+                    </span>
 
-              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-4">
-                  {/* Pulsing Icon */}
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md",
-                    isOverdue
-                      ? "bg-rose-500 text-white shadow-rose-500/20"
-                      : "bg-amber-500 text-white shadow-amber-500/20"
-                  )}>
-                    {isOverdue ? <AlertTriangle className="w-6 h-6 animate-pulse" /> : <Clock className="w-6 h-6" />}
+                    {/* Clean Countdown Badge */}
+                    <span className={cn(
+                      "px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
+                      isOverdue
+                        ? "bg-rose-500 text-white border-rose-600"
+                        : isDueToday
+                          ? "bg-amber-500 text-white border-amber-600"
+                          : "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40"
+                    )}>
+                      {isOverdue
+                        ? `⚠️ ${Math.abs(daysDiff)} ${t('overdueDays')}`
+                        : isDueToday
+                          ? "🚨 Due Today!"
+                          : `⏱️ ${daysDiff} ${t('daysRemaining')}`}
+                    </span>
                   </div>
 
-                  <div>
-                    {/* Status Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span className={cn(
-                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border flex items-center gap-1.5",
-                        isOverdue
-                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
-                          : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
-                      )}>
-                        <span className={cn("w-1.5 h-1.5 rounded-full", isOverdue ? "bg-rose-500 animate-ping" : "bg-amber-500 animate-pulse")} />
-                        {isOverdue ? "🚨 Critical Attention" : "⚡ Priority Action"}
-                      </span>
-
-                      {/* Clean Countdown Badge */}
-                      <span className={cn(
-                        "px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
-                        isOverdue
-                          ? "bg-rose-500 text-white border-rose-600"
-                          : isDueToday
-                            ? "bg-amber-500 text-white border-amber-600"
-                            : "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40"
-                      )}>
-                        {isOverdue
-                          ? `⚠️ ${Math.abs(daysDiff)} ${t('overdueDays')}`
-                          : isDueToday
-                            ? "🚨 Due Today!"
-                            : `⏱️ ${daysDiff} ${t('daysRemaining')}`}
-                      </span>
+                  <div className="flex items-start gap-3.5 mb-4">
+                    <div className={cn(
+                      "w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md",
+                      isOverdue
+                        ? "bg-rose-500 text-white shadow-rose-500/20"
+                        : "bg-amber-500 text-white shadow-amber-500/20"
+                    )}>
+                      {isOverdue ? <AlertTriangle className="w-5 h-5 animate-pulse" /> : <Clock className="w-5 h-5" />}
                     </div>
 
-                    <h3 className="font-bold text-base sm:text-lg text-foreground font-display">
-                      {t('nextVaccineDue')}: <span className="text-teal-600 dark:text-teal-400">{nextVaccine.vaccine.name}</span>
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                      For <span className="font-semibold text-foreground">{nextVaccine.child.name}</span> • Due <span className="font-medium text-foreground">{format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}</span>
-                    </p>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-base sm:text-lg text-foreground font-display truncate">
+                        {nextVaccine.vaccine.name}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                        For <span className="font-semibold text-foreground">{nextVaccine.child.name}</span> • Due <span className="font-medium text-foreground">{format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap self-start sm:self-auto active:scale-[0.98]"
-                >
-                  <span>View Full Schedule</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">National Immunization Schedule</span>
+                  <button
+                    onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                  >
+                    <span>View Schedule</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })() : (
+            <div className="p-5 sm:p-6 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-card/90 to-card backdrop-blur-xl flex flex-col justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-base text-foreground font-display">All Vaccinations Up-to-Date!</h4>
+                  <p className="text-xs text-muted-foreground">Your children have no pending vaccine milestones.</p>
+                </div>
               </div>
-            </motion.div>
-          );
-        })()}
+            </div>
+          )}
+
+          {/* Nearby Vaccination Centers Card */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-teal-500/15 via-card/90 to-card border border-teal-500/35 hover:border-teal-500/60 hover:shadow-teal-500/10 transition-all backdrop-blur-xl flex flex-col justify-between shadow-md relative overflow-hidden group">
+            {/* Soft Ambient Glow */}
+            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  Live GPS Locator
+                </span>
+                <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400">11+ Verified Centers</span>
+              </div>
+
+              <div className="flex items-start gap-3.5 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center shadow-md shadow-teal-500/20 flex-shrink-0">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display">
+                    Find Government PHCs & Clinics
+                  </h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed">
+                    Check walk-in timings, live stock of NIS 2025 vaccines & get 1-click turn-by-turn directions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Nearby & State Registry</span>
+              <button
+                onClick={() => navigate('/centers')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+              >
+                <span>Explore Centers Map 📍</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Children Section */}
         <motion.div
