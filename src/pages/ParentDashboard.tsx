@@ -1,35 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  CheckCircle, 
-  AlertTriangle, 
-  Clock, 
-  Plus, 
-  Baby, 
-  Trash2, 
-  ArrowRightLeft, 
-  ArrowRight,
-  Search, 
-  MapPin, 
-  ExternalLink,
-  FileText,
-  ShieldCheck
-} from 'lucide-react';
+import { CheckCircle, AlertTriangle, Clock, Plus, Baby, Trash2, ArrowRightLeft, Search, MapPin, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import ChildCard from '@/components/ChildCard';
 import StatsCard from '@/components/StatsCard';
-import CertificateModal from '@/components/CertificateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { childrenAPI, usersAPI } from '@/lib/api';
-import { MASTER_VACCINE_SCHEDULE } from '@/lib/vaccineSchedule';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 interface Child {
   _id?: string;
@@ -53,13 +34,12 @@ const ParentDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [childToDelete, setChildToDelete] = useState<Child | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [childToTransfer, setChildToTransfer] = useState<Child | null>(null);
   const [transferDoctorId, setTransferDoctorId] = useState('');
   const [doctorPreview, setDoctorPreview] = useState<any | null>(null);
   const [isLookingUpDoctor, setIsLookingUpDoctor] = useState(false);
   const [isTransferringDoctor, setIsTransferringDoctor] = useState(false);
-  const [selectedCertificateChild, setSelectedCertificateChild] = useState<any | null>(null);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'overdue' | 'ontrack'>('all');
   const [newChild, setNewChild] = useState({
     name: '',
     dateOfBirth: '',
@@ -77,7 +57,6 @@ const ParentDashboard: React.FC = () => {
       try {
         setIsLoading(true);
         const data = await childrenAPI.getAll();
-        // Normalize children data
         const normalizedChildren = data.map((child: any) => ({
           ...child,
           id: child._id || child.id,
@@ -104,7 +83,7 @@ const ParentDashboard: React.FC = () => {
   // Calculate aggregate stats
   const totalStats = children.reduce(
     (acc, child) => {
-      child.schedule.forEach(v => {
+      child.schedule.forEach((v) => {
         if (v.status === 'COMPLETED') acc.completed++;
         else if (v.status === 'PENDING') acc.pending++;
         else if (v.status === 'OVERDUE') acc.overdue++;
@@ -114,32 +93,6 @@ const ParentDashboard: React.FC = () => {
     },
     { completed: 0, pending: 0, overdue: 0, upcoming: 0 }
   );
-
-  // Get next upcoming vaccine
-  const getNextVaccine = () => {
-    for (const child of children) {
-      const pending = child.schedule
-        .filter(v => v.status === 'PENDING' || v.status === 'UPCOMING')
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-      if (pending.length > 0) {
-        return { child, vaccine: pending[0] };
-      }
-    }
-    return null;
-  };
-
-  const nextVaccine = getNextVaccine();
-
-  const overdueChildrenCount = children.filter(c => (c.schedule || []).some((v: any) => v.status === 'OVERDUE')).length;
-  const onTrackChildrenCount = children.length - overdueChildrenCount;
-
-  const filteredChildren = children.filter((child) => {
-    if (filterStatus === 'all') return true;
-    const isOverdue = (child.schedule || []).some((v: any) => v.status === 'OVERDUE');
-    if (filterStatus === 'overdue') return isOverdue;
-    if (filterStatus === 'ontrack') return !isOverdue;
-    return true;
-  });
 
   const handleAddChild = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +105,6 @@ const ParentDashboard: React.FC = () => {
         gender: newChild.gender,
       });
 
-      // Normalize and add to local state
       const normalizedChild = {
         ...childData,
         id: childData._id || childData.id,
@@ -188,16 +140,13 @@ const ParentDashboard: React.FC = () => {
 
       const result = await childrenAPI.remove(childId);
 
-      // Remove child from local state
       setChildren((prev) => prev.filter((child) => child.id !== childId));
       setChildToDelete(null);
 
-      // If parent account was deleted, logout and redirect
       if (result.parentDeleted) {
         toast.success('Child deleted', {
           description: 'Your account has been deleted as you have no remaining children.',
         });
-        // Small delay to show the toast
         setTimeout(() => {
           logout();
           navigate('/');
@@ -213,6 +162,31 @@ const ParentDashboard: React.FC = () => {
       });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteParentAccount = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your parent account and all associated child vaccination records? This action cannot be undone.'
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsDeletingAccount(true);
+      await usersAPI.deleteCurrentUser();
+
+      toast.success('Account deleted', {
+        description: 'Your parent account and records have been deleted successfully.',
+      });
+
+      logout();
+      navigate('/');
+    } catch (error: any) {
+      toast.error('Failed to delete account', {
+        description: error.message || 'An error occurred',
+      });
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -299,46 +273,46 @@ const ParentDashboard: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Header */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="mb-8"
         >
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 mb-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>National Immunization Schedule (NIS) 2025 Compliant</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="font-display font-bold text-2xl sm:text-3xl text-foreground mb-1">
+                Welcome back, {user?.name?.split(' ')[0]}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Track and manage your children's immunization records under NIS 2025
+              </p>
             </div>
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground tracking-tight">
-              Welcome back, {user?.name?.split(' ')[0]}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Track and manage your family's vaccination milestones with official ABHA verification.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>{children.length} Children Linked</span>
-              <span className="text-border">•</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">ABHA Active</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/centers')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground border border-border text-xs font-medium transition shadow-xs"
+              >
+                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Find Centers</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteParentAccount}
+                disabled={isDeletingAccount}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition disabled:opacity-60"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+              </button>
             </div>
-
-            <button
-              onClick={() => setIsAddChildOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-xs active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Register Child</span>
-            </button>
           </div>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title={t('completedVaccines')}
             value={totalStats.completed}
@@ -349,414 +323,200 @@ const ParentDashboard: React.FC = () => {
           <StatsCard
             title={t('pendingVaccines')}
             value={totalStats.pending}
-            subtitle={totalStats.pending > 0 ? `${t('dueWithin')} 7 ${t('daysRemaining')}` : undefined}
+            subtitle="Upcoming due doses"
             icon={Clock}
             variant="warning"
-            delay={0.05}
-          />
-          <StatsCard
-            title={t('missedVaccines')}
-            value={totalStats.overdue}
-            icon={AlertTriangle}
-            variant="danger"
             delay={0.1}
           />
           <StatsCard
-            title={t('upcomingVaccines')}
-            value={totalStats.upcoming}
-            icon={Calendar}
-            delay={0.15}
+            title={t('overdueVaccines')}
+            value={totalStats.overdue}
+            subtitle="Requires immediate attention"
+            icon={AlertTriangle}
+            variant="danger"
+            delay={0.2}
           />
-        </div>
-
-        {/* Dual Action Banners Grid: Next Vaccine Priority Alert + Government PHC Locator */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 mb-8 items-stretch">
-          {/* Next Vaccine Priority Alert Banner */}
-          {nextVaccine ? (() => {
-            const daysDiff = differenceInDays(nextVaccine.vaccine.dueDate, new Date());
-            const isOverdue = daysDiff < 0;
-            const isDueToday = daysDiff === 0;
-
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.2 }}
-                className="p-5 sm:p-6 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs transition-colors"
-              >
-                <div>
-                  {/* Status Badges */}
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className={cn(
-                      "px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border flex items-center gap-1.5",
-                      isOverdue
-                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
-                    )}>
-                      {isOverdue ? (
-                        <>
-                          <AlertTriangle className="w-3 h-3 text-rose-500 shrink-0" />
-                          <span>Critical Attention</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="w-3 h-3 text-amber-500 shrink-0" />
-                          <span>Priority Milestone</span>
-                        </>
-                      )}
-                    </span>
-
-                    {/* Clean Countdown Badge */}
-                    <span className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border",
-                      isOverdue
-                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                        : isDueToday
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                          : "bg-secondary text-muted-foreground border-border"
-                    )}>
-                      {isOverdue ? (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                          <span>{Math.abs(daysDiff)} {t('overdueDays')}</span>
-                        </>
-                      ) : isDueToday ? (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500 animate-pulse shrink-0" />
-                          <span>Due Today!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                          <span>{daysDiff} {t('daysRemaining')}</span>
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-3.5 mb-4">
-                    <div className={cn(
-                      "w-11 h-11 rounded-xl border flex items-center justify-center flex-shrink-0 shadow-xs",
-                      isOverdue
-                        ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
-                        : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
-                    )}>
-                      {isOverdue ? <AlertTriangle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-                    </div>
-
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-base sm:text-lg text-foreground font-display truncate">
-                        {nextVaccine.vaccine.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        For <span className="font-semibold text-foreground">{nextVaccine.child.name}</span> • Due <span className="font-medium text-foreground">{format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-border flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">National Immunization Schedule</span>
-                  <button
-                    onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-colors whitespace-nowrap active:scale-[0.98]"
-                  >
-                    <span>View Schedule</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })() : (
-            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card flex flex-col justify-between shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
-                  <CheckCircle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-base text-foreground font-display">All Vaccinations Up-to-Date!</h4>
-                  <p className="text-xs text-muted-foreground">Your children have no pending vaccine milestones.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Nearby Vaccination Centers Card */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs transition-colors">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground border border-border flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Live GPS Locator
-                </span>
-                <span className="text-[11px] font-semibold text-muted-foreground">11+ Verified Centers</span>
-              </div>
-
-              <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-11 h-11 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shadow-xs flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display">
-                    Find Government PHCs & Clinics
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Check walk-in timings, live stock of NIS 2025 vaccines & get 1-click turn-by-turn directions.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-border flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Nearby & State Registry</span>
-              <button
-                onClick={() => navigate('/centers')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-colors whitespace-nowrap active:scale-[0.98]"
-              >
-                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Explore Centers Map</span>
-                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
+          <StatsCard
+            title="Children Registered"
+            value={children.length}
+            icon={Users}
+            delay={0.3}
+          />
         </div>
 
         {/* Children Section */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.4 }}
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 mb-5">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">
-                  {t('children')}
-                </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground border border-border">
-                  {children.length} Registered
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Select a child to view clinical timeline, administer doses, or generate instant certificates.
-              </p>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display font-semibold text-xl text-foreground">
+              {t('yourChildren')}
+            </h2>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              {/* Filter Pills */}
-              <div className="flex items-center p-1 rounded-xl bg-secondary border border-border text-xs font-semibold shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('all')}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg transition-all",
-                    filterStatus === 'all'
-                      ? "bg-card text-foreground shadow-xs font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  All ({children.length})
+            {/* Add Child Dialog */}
+            <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
+              <DialogTrigger asChild>
+                <button className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium shadow-xs transition">
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t('addChild')}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('overdue')}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
-                    filterStatus === 'overdue'
-                      ? "bg-rose-500 text-white shadow-xs font-bold"
-                      : "text-rose-600 dark:text-rose-400 hover:text-rose-700"
-                  )}
-                >
-                  <AlertTriangle className="w-3 h-3 shrink-0" />
-                  <span>Needs Dose</span>
-                  <span>({overdueChildrenCount})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('ontrack')}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg transition-all",
-                    filterStatus === 'ontrack'
-                      ? "bg-emerald-600 text-white shadow-xs font-bold"
-                      : "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700"
-                  )}
-                >
-                  Up to Date ({onTrackChildrenCount})
-                </button>
-              </div>
-
-              {/* Add Child Dialog */}
-              <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
-                <DialogTrigger asChild>
-                  <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium shadow-xs transition-all">
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{t('addChild')}</span>
+              </DialogTrigger>
+              <DialogContent className="bg-card border border-border">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-foreground">
+                    <Baby className="w-5 h-5 text-emerald-500" />
+                    {t('addChild')}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAddChild} className="space-y-4 mt-4">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      {t('childName')}
+                    </label>
+                    <input
+                      type="text"
+                      value={newChild.name}
+                      onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-lg border border-border bg-secondary/50 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500"
+                      placeholder="Enter child's full name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      {t('dateOfBirth')}
+                    </label>
+                    <input
+                      type="date"
+                      value={newChild.dateOfBirth}
+                      onChange={(e) => setNewChild({ ...newChild, dateOfBirth: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-lg border border-border bg-secondary/50 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      {t('gender')}
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="male"
+                          checked={newChild.gender === 'male'}
+                          onChange={() => setNewChild({ ...newChild, gender: 'male' })}
+                          className="w-4 h-4 text-emerald-600"
+                        />
+                        <span>{t('male')}</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="female"
+                          checked={newChild.gender === 'female'}
+                          onChange={() => setNewChild({ ...newChild, gender: 'female' })}
+                          className="w-4 h-4 text-emerald-600"
+                        />
+                        <span>{t('female')}</span>
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition shadow-xs mt-4"
+                  >
+                    {t('save')}
                   </button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Baby className="w-5 h-5 text-primary" />
-                      {t('addChild')}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleAddChild} className="space-y-4 mt-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('childName')}
-                      </label>
-                      <input
-                        type="text"
-                        value={newChild.name}
-                        onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
-                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        placeholder="Enter child's name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('dateOfBirth')}
-                      </label>
-                      <input
-                        type="date"
-                        value={newChild.dateOfBirth}
-                        onChange={(e) => setNewChild({ ...newChild, dateOfBirth: e.target.value })}
-                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('gender')}
-                      </label>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            value="male"
-                            checked={newChild.gender === 'male'}
-                            onChange={(e) => setNewChild({ ...newChild, gender: 'male' })}
-                            className="w-4 h-4 text-primary"
-                          />
-                          <span>{t('male')}</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            value="female"
-                            checked={newChild.gender === 'female'}
-                            onChange={(e) => setNewChild({ ...newChild, gender: 'female' })}
-                            className="w-4 h-4 text-primary"
-                          />
-                          <span>{t('female')}</span>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setIsAddChildOpen(false)}
-                        className="flex-1 px-4 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-muted"
-                      >
-                        {t('cancel')}
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 btn-medical"
-                      >
-                        {t('save')}
-                      </button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {isLoading ? (
-            <div className="card-medical p-12 text-center">
-              <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading children...</p>
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
+              <div className="w-8 h-8 border-3 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Loading children...</p>
             </div>
           ) : children.length === 0 ? (
-            <div className="card-medical p-12 text-center">
-              <Baby className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-semibold text-lg text-foreground mb-2">No children registered</h3>
-              <p className="text-muted-foreground mb-6">Add your first child to start tracking vaccinations</p>
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
+              <Baby className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-60" />
+              <h3 className="font-semibold text-base text-foreground mb-1">No children registered</h3>
+              <p className="text-xs text-muted-foreground mb-5">Add your first child to start tracking vaccinations</p>
               <button
                 onClick={() => setIsAddChildOpen(true)}
-                className="btn-medical"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium shadow-xs"
               >
-                <Plus className="w-4 h-4 inline mr-2" />
+                <Plus className="w-4 h-4" />
                 {t('addChild')}
               </button>
             </div>
-          ) : filteredChildren.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-border bg-card">
-              <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <h4 className="font-semibold text-foreground">No children in this view</h4>
-              <p className="text-xs text-muted-foreground mt-1 mb-3">All children records are currently updated.</p>
-              <button
-                onClick={() => setFilterStatus('all')}
-                className="text-xs text-emerald-400 font-medium hover:underline"
-              >
-                Show All Children
-              </button>
-            </div>
           ) : (
-            <motion.div 
-              variants={{
-                hidden: { opacity: 0 },
-                show: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.1,
-                  },
-                },
-              }}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {filteredChildren.map((child) => (
-                <motion.div
-                  key={child.id || child._id}
-                  variants={{
-                    hidden: { opacity: 0, y: 15 },
-                    show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-                  }}
-                >
+            <div className="grid md:grid-cols-2 gap-6">
+              {children.map((child) => (
+                <div key={child.id || child._id} className="relative group">
                   <ChildCard
                     child={child}
                     onClick={() => navigate(`/child/${child.id || child._id}`)}
-                    onDownloadCertificate={(c) => setSelectedCertificateChild(c)}
-                    onTransferDoctor={(c) => openTransferDialog(c)}
-                    onDeleteChild={(c) => setChildToDelete(c)}
                   />
-                </motion.div>
+                  <div className="mt-2 px-1 flex items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground truncate">
+                      Assigned doctor:{' '}
+                      <span className="font-medium text-foreground">
+                        {typeof child.doctorId === 'object'
+                          ? `${child.doctorId.name}${child.doctorId.doctorId ? ` (${child.doctorId.doctorId})` : ''}`
+                          : 'Not assigned'}
+                      </span>
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openTransferDialog(child);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium text-foreground transition"
+                    >
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-muted-foreground" />
+                      Transfer Doctor
+                    </button>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChildToDelete(child);
+                    }}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition hover:bg-destructive/20"
+                    title="Delete child"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               ))}
-            </motion.div>
+            </div>
           )}
         </motion.div>
       </main>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!childToDelete} onOpenChange={(open) => !open && setChildToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Child Record?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">Delete Child Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete {childToDelete?.name}'s record? This action cannot be undone.
               {children.length === 1 && (
-                <span className="block mt-2 text-destructive font-medium">
+                <span className="block mt-2 text-destructive font-medium text-xs">
                   Warning: This is your only child. Deleting this record will also delete your account.
                 </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="bg-secondary text-foreground border border-border">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteChild}
               disabled={isDeleting}
@@ -778,17 +538,17 @@ const ParentDashboard: React.FC = () => {
           }
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg bg-card border border-border">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ArrowRightLeft className="w-5 h-5 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <ArrowRightLeft className="w-5 h-5 text-emerald-500" />
               Transfer Doctor - {childToTransfer?.name}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                 New Doctor ID
               </label>
               <div className="flex gap-2">
@@ -800,44 +560,44 @@ const ParentDashboard: React.FC = () => {
                     setDoctorPreview(null);
                   }}
                   placeholder="DOC-A3K9X2"
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="flex-1 px-3.5 py-2 rounded-lg border border-border bg-secondary/50 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500"
                 />
                 <button
                   type="button"
                   onClick={handleLookupDoctor}
                   disabled={isLookingUpDoctor || !transferDoctorId.trim()}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-border text-sm font-medium hover:bg-muted disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium text-foreground transition disabled:opacity-60"
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="w-3.5 h-3.5" />
                   {isLookingUpDoctor ? 'Checking...' : 'Preview'}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 Format: DOC-XXXXXX
               </p>
             </div>
 
             {doctorPreview && (
-              <div className="rounded-lg border border-border p-4 bg-muted/30">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+              <div className="rounded-lg border border-border p-3.5 bg-secondary/30">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
                   Doctor Preview
                 </p>
-                <p className="font-semibold text-foreground">{doctorPreview.name}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-semibold text-foreground text-sm">{doctorPreview.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {doctorPreview.hospitalName || 'Hospital not specified'}
                 </p>
-                <p className="text-xs font-mono mt-1">{doctorPreview.doctorId}</p>
+                <p className="text-xs font-mono mt-1 text-emerald-400">{doctorPreview.doctorId}</p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => {
                   setChildToTransfer(null);
                   resetTransferState();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium hover:bg-muted"
+                className="flex-1 px-3.5 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-medium transition"
               >
                 Cancel
               </button>
@@ -845,7 +605,7 @@ const ParentDashboard: React.FC = () => {
                 type="button"
                 onClick={handleTransferDoctor}
                 disabled={!doctorPreview || isTransferringDoctor}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-60"
+                className="flex-1 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition disabled:opacity-60 shadow-xs"
               >
                 {isTransferringDoctor ? 'Transferring...' : 'Confirm Transfer'}
               </button>
@@ -853,15 +613,6 @@ const ParentDashboard: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Certificate Preview & Download Modal */}
-      {selectedCertificateChild && (
-        <CertificateModal
-          isOpen={!!selectedCertificateChild}
-          onClose={() => setSelectedCertificateChild(null)}
-          child={selectedCertificateChild}
-        />
-      )}
     </div>
   );
 };
