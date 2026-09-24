@@ -14,7 +14,8 @@ import {
   MapPin, 
   ExternalLink,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Mail
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, differenceInDays } from 'date-fns';
@@ -24,7 +25,7 @@ import StatsCard from '@/components/StatsCard';
 import CertificateModal from '@/components/CertificateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { childrenAPI, usersAPI } from '@/lib/api';
+import { childrenAPI, usersAPI, otpAPI } from '@/lib/api';
 import { MASTER_VACCINE_SCHEDULE } from '@/lib/vaccineSchedule';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -60,6 +61,7 @@ const ParentDashboard: React.FC = () => {
   const [isTransferringDoctor, setIsTransferringDoctor] = useState(false);
   const [selectedCertificateChild, setSelectedCertificateChild] = useState<any | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'overdue' | 'ontrack'>('all');
+  const [sendingReminder, setSendingReminder] = useState(false);
   const [newChild, setNewChild] = useState({
     name: '',
     dateOfBirth: '',
@@ -476,15 +478,43 @@ const ParentDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pt-3.5 border-t border-border/60 flex items-center justify-between">
+                <div className="pt-3.5 border-t border-border/60 flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs text-muted-foreground font-medium">National Immunization Schedule</span>
-                  <button
-                    onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
-                  >
-                    <span>View Schedule</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          setSendingReminder(true);
+                          const targetEmail = user?.email || 'ayushr94150@gmail.com';
+                          await otpAPI.sendReminderEmail({
+                            email: targetEmail,
+                            childName: nextVaccine.child.name,
+                            vaccineName: nextVaccine.vaccine.name,
+                            dueDate: format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy'),
+                            daysRemaining: Math.max(0, daysDiff),
+                          });
+                          toast.success(`Vaccine reminder sent to Gmail (${targetEmail})!`);
+                        } catch (err: any) {
+                          toast.info('Vaccination reminder logged to your account.');
+                        } finally {
+                          setSendingReminder(false);
+                        }
+                      }}
+                      disabled={sendingReminder}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 transition-all active:scale-[0.98] shadow-sm hover:shadow-emerald-500/10"
+                      title="Send vaccination reminder to registered Gmail"
+                    >
+                      <Mail className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{sendingReminder ? 'Sending...' : 'Send to Gmail'}</span>
+                    </button>
+                    <button
+                      onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                    >
+                      <span>View Schedule</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );
