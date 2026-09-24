@@ -58,14 +58,35 @@ const Navbar: React.FC = () => {
               <ThemeToggle />
             </div>
 
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-foreground bg-card/80 border border-border/80 hover:border-emerald-500/40 backdrop-blur-md shadow-2xs transition-colors active:scale-95"
-            >
-              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
-            </button>
+            {/* Language Segmented Control */}
+            <div className="flex items-center p-0.5 rounded-full bg-card/80 border border-border/80 text-xs font-semibold shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={cn(
+                  'px-3 py-1 rounded-full transition-all text-xs',
+                  language === 'en'
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Switch to English"
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('hi')}
+                className={cn(
+                  'px-3 py-1 rounded-full transition-all text-xs',
+                  language === 'hi'
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="हिंदी में बदलें"
+              >
+                हिंदी
+              </button>
+            </div>
 
             {user && <NotificationDropdown />}
 
@@ -133,13 +154,33 @@ const Navbar: React.FC = () => {
                 <ThemeToggle variant="with-label" className="flex-1 justify-start rounded-2xl bg-card/80 border border-border/80" />
               </div>
               
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 w-full px-3.5 py-2 rounded-2xl text-xs font-semibold text-foreground bg-card/80 border border-border/80 hover:bg-muted"
-              >
-                <Globe className="w-4 h-4 text-muted-foreground" />
-                <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
-              </button>
+              {/* Mobile Language Segmented Control */}
+              <div className="flex items-center p-1 rounded-2xl bg-card/80 border border-border/80 text-xs font-semibold w-full">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={cn(
+                    'flex-1 py-1.5 rounded-xl transition-all text-xs text-center',
+                    language === 'en'
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('hi')}
+                  className={cn(
+                    'flex-1 py-1.5 rounded-xl transition-all text-xs text-center',
+                    language === 'hi'
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30 shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  हिंदी
+                </button>
+              </div>
 
               {user && (
                 <>

@@ -210,14 +210,33 @@ const Login: React.FC = () => {
               <span>{language === 'hi' ? 'टीकाकरण केंद्र खोजें' : 'Find Centers'}</span>
             </button>
 
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted border border-border/70 transition-colors"
-              title="Toggle Language"
-            >
-              <Globe className="w-3.5 h-3.5 text-teal-600" />
-              <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
-            </button>
+            {/* Clear Language Switcher Pill */}
+            <div className="flex items-center p-0.5 rounded-xl bg-muted/60 border border-border/80 text-xs font-semibold shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                  language === 'en'
+                    ? 'bg-card text-teal-600 dark:text-teal-400 font-bold shadow-xs border border-border/60'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Switch to English"
+              >
+                <span>English</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('hi')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                  language === 'hi'
+                    ? 'bg-card text-teal-600 dark:text-teal-400 font-bold shadow-xs border border-border/60'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="हिंदी में बदलें"
+              >
+                <span>हिंदी</span>
+              </button>
+            </div>
 
             <ThemeToggle />
           </div>
