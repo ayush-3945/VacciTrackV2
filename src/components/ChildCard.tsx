@@ -9,7 +9,11 @@ import {
   ArrowRightLeft, 
   Trash2, 
   Stethoscope,
-  Sparkles
+  Sparkles,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MASTER_VACCINE_SCHEDULE } from '@/lib/vaccineSchedule';
@@ -53,6 +57,11 @@ const ChildCard: React.FC<ChildCardProps> = ({
   const totalCount = MASTER_VACCINE_SCHEDULE.length; // 26 doses in NIS 2025
   const progressPercent = Math.min(100, Math.round((completedCount / totalCount) * 100));
 
+  // Find the next upcoming/overdue milestone specifically for this child
+  const nextChildVaccine = schedule
+    .filter(v => v.status === 'OVERDUE' || v.status === 'PENDING' || v.status === 'UPCOMING')
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
+
   const getAge = (dob: Date | string) => {
     const dobDate = dob instanceof Date ? dob : new Date(dob);
     if (isNaN(dobDate.getTime())) return '';
@@ -89,14 +98,14 @@ const ChildCard: React.FC<ChildCardProps> = ({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className="backdrop-blur-md bg-card/70 border border-border/60 hover:border-emerald-500/40 hover:shadow-lg transition-all rounded-2xl p-4 cursor-pointer"
+        className="backdrop-blur-md bg-card/75 border border-border/70 hover:border-emerald-500/40 hover:shadow-lg transition-all rounded-2xl p-4 cursor-pointer"
       >
         <div className="flex items-center gap-4">
           <div className={cn(
             'w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-xs',
             child.gender === 'male' 
-              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20' 
-              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25' 
+              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25'
           )}>
             <User className="w-6 h-6" />
           </div>
@@ -114,34 +123,42 @@ const ChildCard: React.FC<ChildCardProps> = ({
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      className="backdrop-blur-md bg-card/70 border border-border/60 hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/5 transition-all rounded-3xl p-5 sm:p-6 relative overflow-hidden group flex flex-col justify-between"
+      className="backdrop-blur-xl bg-card/85 border border-border/80 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all rounded-3xl p-5 sm:p-6 relative overflow-hidden group flex flex-col justify-between"
     >
       {/* Top subtle gradient hairline */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 opacity-70 group-hover:opacity-100 transition-opacity" />
 
       <div>
-        {/* Card Header */}
+        {/* Card Header: Avatar + Name + Age + Overdue Badge + Delete */}
         <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <div className={cn(
-              'w-13 h-13 rounded-2xl flex items-center justify-center shadow-xs border flex-shrink-0',
+              'w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border flex-shrink-0 relative',
               child.gender === 'male'
-                ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
-                : 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30'
+                ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                : 'bg-gradient-to-br from-pink-500/20 to-rose-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30'
             )}>
               <User className="w-7 h-7" />
+              <span className={cn(
+                'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card flex items-center justify-center text-[9px] font-bold text-white',
+                child.gender === 'male' ? 'bg-blue-600' : 'bg-pink-600'
+              )}>
+                {child.gender === 'male' ? 'M' : 'F'}
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 
                   onClick={onClick}
-                  className="font-display font-bold text-xl text-foreground hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-pointer"
+                  className="font-display font-bold text-xl sm:text-2xl text-foreground hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-pointer"
                 >
                   {child.name}
                 </h3>
               </div>
-              <p className="text-xs font-medium text-muted-foreground">
-                {getAge(child.dateOfBirth)}
+              <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                <span>{getAge(child.dateOfBirth)}</span>
+                <span className="text-border">•</span>
+                <span className="text-teal-600 dark:text-teal-400">NIS 2025 Schedule</span>
               </p>
             </div>
           </div>
@@ -151,11 +168,11 @@ const ChildCard: React.FC<ChildCardProps> = ({
             {overdueCount > 0 && (
               <motion.div
                 animate={{ scale: [1, 1.04, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs"
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs"
                 title={`${overdueCount} vaccinations require immediate attention`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
                 <span>⚠️ {overdueCount} Overdue</span>
               </motion.div>
             )}
@@ -168,7 +185,7 @@ const ChildCard: React.FC<ChildCardProps> = ({
                   e.stopPropagation();
                   onDeleteChild(child);
                 }}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-70 group-hover:opacity-100"
+                className="p-1.5 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-60 group-hover:opacity-100"
                 title="Delete child record"
               >
                 <Trash2 className="w-4 h-4" />
@@ -179,66 +196,77 @@ const ChildCard: React.FC<ChildCardProps> = ({
 
         {/* DOB & ABHA Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4 text-xs font-medium text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60 border border-border/50">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 border border-border/70 shadow-2xs">
             <Calendar className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            <span>DOB: {formattedDob()}</span>
+            <span className="text-muted-foreground">DOB:</span>
+            <span className="font-semibold text-foreground">{formattedDob()}</span>
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60 border border-border/50 font-mono">
-            <CreditCard className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            <span>ABHA: {formattedAbha}</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 border border-border/70 shadow-2xs font-mono">
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">ABHA</span>
+            <span className="font-semibold text-foreground tracking-wider">{formattedAbha}</span>
           </span>
         </div>
 
-        {/* Middle Section: Stats & Shield */}
+        {/* Middle Section: Elevated Stats & Shield Badge */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
-          {/* Stats Chips (2 cols) */}
+          {/* Stats Chips & Progress Gauge (2 cols) */}
           <div className="sm:col-span-2 space-y-3">
-            {/* 3 Sleek Pill Counters */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="px-2.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-                <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 leading-tight">
+            {/* 3 Sleek Glass Stat Counters */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 text-center relative overflow-hidden group/stat hover:border-emerald-500/50 transition-colors shadow-2xs">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Completed</span>
+                </div>
+                <p className="text-2xl font-black font-display text-emerald-600 dark:text-emerald-400 leading-tight">
                   {completedCount}
                 </p>
-                <p className="text-[10px] font-semibold text-emerald-700/80 dark:text-emerald-400/80 uppercase tracking-wider">
-                  Completed
-                </p>
               </div>
-              <div className="px-2.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
-                <p className="text-lg font-extrabold text-amber-600 dark:text-amber-400 leading-tight">
+
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 text-center relative overflow-hidden group/stat hover:border-amber-500/50 transition-colors shadow-2xs">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Pending</span>
+                </div>
+                <p className="text-2xl font-black font-display text-amber-600 dark:text-amber-400 leading-tight">
                   {pendingCount}
                 </p>
-                <p className="text-[10px] font-semibold text-amber-700/80 dark:text-amber-400/80 uppercase tracking-wider">
-                  Pending
-                </p>
               </div>
-              <div className="px-2.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center">
-                <p className="text-lg font-extrabold text-rose-600 dark:text-rose-400 leading-tight">
+
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent border border-rose-500/30 text-center relative overflow-hidden group/stat hover:border-rose-500/50 transition-colors shadow-2xs">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                  <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Overdue</span>
+                </div>
+                <p className="text-2xl font-black font-display text-rose-600 dark:text-rose-400 leading-tight">
                   {overdueCount}
-                </p>
-                <p className="text-[10px] font-semibold text-rose-700/80 dark:text-rose-400/80 uppercase tracking-wider">
-                  Overdue
                 </p>
               </div>
             </div>
 
-            {/* Dynamic Immunity Progress Bar */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-foreground flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  Immunity Protection
-                </span>
-                <span className="text-teal-600 dark:text-teal-400 font-bold">
-                  {progressPercent}% Protected • {completedCount} of {totalCount} Doses
+            {/* Dynamic Immunity Health Gauge */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-foreground">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Immunization Shield</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
+                    {progressPercent}% Protected
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  <strong className="text-foreground font-bold">{completedCount}</strong> of {totalCount} Doses
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/50">
+              <div className="w-full h-3 bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/70 shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.9, ease: 'easeOut' }}
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 shadow-xs"
-                />
+                  transition={{ duration: 1.1, ease: 'easeOut' }}
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 relative"
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                </motion.div>
               </div>
             </div>
           </div>
@@ -253,13 +281,31 @@ const ChildCard: React.FC<ChildCardProps> = ({
           </div>
         </div>
 
+        {/* Milestone Indicator: Next Dose for this Child */}
+        {nextChildVaccine && (
+          <div className={cn(
+            "flex items-center justify-between text-xs px-3.5 py-2 rounded-xl border mb-3 shadow-2xs",
+            nextChildVaccine.status === 'OVERDUE'
+              ? "bg-rose-500/10 border-rose-500/25 text-rose-700 dark:text-rose-300"
+              : "bg-teal-500/10 border-teal-500/25 text-teal-800 dark:text-teal-200"
+          )}>
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="font-semibold">{nextChildVaccine.status === 'OVERDUE' ? '⚠️ Due Now:' : 'Next Dose:'}</span>
+              <span className="font-bold truncate">{nextChildVaccine.name}</span>
+            </div>
+            <span className="text-[11px] font-mono whitespace-nowrap opacity-90 font-medium">
+              {format(new Date(nextChildVaccine.dueDate), 'dd MMM yyyy')}
+            </span>
+          </div>
+        )}
+
         {/* Assigned Doctor & Transfer Row */}
-        <div className="flex items-center justify-between gap-2 text-xs py-2 px-3 rounded-xl bg-muted/40 border border-border/40 mb-4">
+        <div className="flex items-center justify-between gap-2 text-xs py-2 px-3 rounded-xl bg-muted/40 border border-border/50 mb-4">
           <div className="flex items-center gap-2 truncate text-muted-foreground">
             <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 flex-shrink-0" />
             <span className="truncate">
-              Doctor:{' '}
-              <span className="font-semibold text-foreground">
+              Assigned Doctor:{' '}
+              <span className="font-bold text-foreground">
                 {doctorName}
               </span>
             </span>
@@ -271,7 +317,7 @@ const ChildCard: React.FC<ChildCardProps> = ({
                 e.stopPropagation();
                 onTransferDoctor(child);
               }}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline flex-shrink-0 transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline flex-shrink-0 transition-colors"
             >
               <ArrowRightLeft className="w-3 h-3" />
               Transfer
@@ -281,16 +327,16 @@ const ChildCard: React.FC<ChildCardProps> = ({
       </div>
 
       {/* Prominent Bottom Action Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-border/60">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3.5 border-t border-border/70">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDownloadCertificate?.(child);
           }}
-          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-foreground bg-muted hover:bg-muted/80 border border-border/70 hover:border-emerald-500/30 transition-all shadow-2xs active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-foreground bg-muted hover:bg-muted/80 border border-border/80 hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all shadow-xs active:scale-[0.98]"
         >
-          <span>📜</span>
+          <FileText className="w-4 h-4 text-teal-600 dark:text-teal-400" />
           <span>Download Certificate</span>
         </button>
 
@@ -300,10 +346,10 @@ const ChildCard: React.FC<ChildCardProps> = ({
             e.stopPropagation();
             onClick?.();
           }}
-          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 transition-all shadow-sm hover:shadow-md hover:shadow-teal-500/20 active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-700 hover:to-emerald-700 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 transition-all active:scale-[0.98] group/btn"
         >
           <span>View Full Timeline</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
     </motion.div>

@@ -58,6 +58,7 @@ const ParentDashboard: React.FC = () => {
   const [isLookingUpDoctor, setIsLookingUpDoctor] = useState(false);
   const [isTransferringDoctor, setIsTransferringDoctor] = useState(false);
   const [selectedCertificateChild, setSelectedCertificateChild] = useState<any | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'overdue' | 'ontrack'>('all');
   const [newChild, setNewChild] = useState({
     name: '',
     dateOfBirth: '',
@@ -127,6 +128,17 @@ const ParentDashboard: React.FC = () => {
   };
 
   const nextVaccine = getNextVaccine();
+
+  const overdueChildrenCount = children.filter(c => (c.schedule || []).some((v: any) => v.status === 'OVERDUE')).length;
+  const onTrackChildrenCount = children.length - overdueChildrenCount;
+
+  const filteredChildren = children.filter((child) => {
+    if (filterStatus === 'all') return true;
+    const isOverdue = (child.schedule || []).some((v: any) => v.status === 'OVERDUE');
+    if (filterStatus === 'overdue') return isOverdue;
+    if (filterStatus === 'ontrack') return !isOverdue;
+    return true;
+  });
 
   const handleAddChild = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,13 +325,20 @@ const ParentDashboard: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-semibold text-foreground shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{children.length} Children Linked</span>
+              <span className="text-border">•</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">ABHA Active</span>
+            </div>
+
             <button
-              onClick={() => navigate('/centers')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-all shadow-2xs"
+              onClick={() => setIsAddChildOpen(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md shadow-teal-500/20 transition-all active:scale-95"
             >
-              <MapPin className="w-3.5 h-3.5 text-teal-600" />
-              <span>Find Centers 📍</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Register Child</span>
             </button>
           </div>
         </motion.div>
@@ -503,99 +522,154 @@ const ParentDashboard: React.FC = () => {
 
         {/* Children Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.25 }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold text-xl text-foreground">
-              {t('children')}
-            </h2>
-            <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
-              <DialogTrigger asChild>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90">
-                  <Plus className="w-4 h-4" />
-                  {t('addChild')}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 mb-5">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">
+                  {t('children')}
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                  {children.length} Registered
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Select a child to view clinical timeline, administer doses, or generate instant certificates.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Filter Pills */}
+              <div className="flex items-center p-1 rounded-2xl bg-muted/80 border border-border/70 text-xs font-semibold shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('all')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl transition-all",
+                    filterStatus === 'all'
+                      ? "bg-card text-foreground shadow-xs font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  All ({children.length})
                 </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Baby className="w-5 h-5 text-primary" />
-                    {t('addChild')}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddChild} className="space-y-4 mt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t('childName')}
-                    </label>
-                    <input
-                      type="text"
-                      value={newChild.name}
-                      onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      placeholder="Enter child's name"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t('dateOfBirth')}
-                    </label>
-                    <input
-                      type="date"
-                      value={newChild.dateOfBirth}
-                      onChange={(e) => setNewChild({ ...newChild, dateOfBirth: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {t('gender')}
-                    </label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          value="male"
-                          checked={newChild.gender === 'male'}
-                          onChange={(e) => setNewChild({ ...newChild, gender: 'male' })}
-                          className="w-4 h-4 text-primary"
-                        />
-                        <span>{t('male')}</span>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('overdue')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl transition-all flex items-center gap-1",
+                    filterStatus === 'overdue'
+                      ? "bg-rose-500 text-white shadow-xs font-bold"
+                      : "text-rose-600 dark:text-rose-400 hover:text-rose-700"
+                  )}
+                >
+                  <span>⚠️ Needs Dose</span>
+                  <span>({overdueChildrenCount})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('ontrack')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl transition-all",
+                    filterStatus === 'ontrack'
+                      ? "bg-emerald-600 text-white shadow-xs font-bold"
+                      : "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700"
+                  )}
+                >
+                  Up to Date ({onTrackChildrenCount})
+                </button>
+              </div>
+
+              {/* Add Child Dialog */}
+              <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-teal-500/20 active:scale-95 transition-all">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t('addChild')}</span>
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Baby className="w-5 h-5 text-primary" />
+                      {t('addChild')}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleAddChild} className="space-y-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        {t('childName')}
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          value="female"
-                          checked={newChild.gender === 'female'}
-                          onChange={(e) => setNewChild({ ...newChild, gender: 'female' })}
-                          className="w-4 h-4 text-primary"
-                        />
-                        <span>{t('female')}</span>
-                      </label>
+                      <input
+                        type="text"
+                        value={newChild.name}
+                        onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
+                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="Enter child's name"
+                        required
+                      />
                     </div>
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddChildOpen(false)}
-                      className="flex-1 px-4 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-muted"
-                    >
-                      {t('cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 btn-medical"
-                    >
-                      {t('save')}
-                    </button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        {t('dateOfBirth')}
+                      </label>
+                      <input
+                        type="date"
+                        value={newChild.dateOfBirth}
+                        onChange={(e) => setNewChild({ ...newChild, dateOfBirth: e.target.value })}
+                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        {t('gender')}
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="male"
+                            checked={newChild.gender === 'male'}
+                            onChange={(e) => setNewChild({ ...newChild, gender: 'male' })}
+                            className="w-4 h-4 text-primary"
+                          />
+                          <span>{t('male')}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="female"
+                            checked={newChild.gender === 'female'}
+                            onChange={(e) => setNewChild({ ...newChild, gender: 'female' })}
+                            className="w-4 h-4 text-primary"
+                          />
+                          <span>{t('female')}</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddChildOpen(false)}
+                        className="flex-1 px-4 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-muted"
+                      >
+                        {t('cancel')}
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 btn-medical"
+                      >
+                        {t('save')}
+                      </button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {isLoading ? (
@@ -616,6 +690,18 @@ const ParentDashboard: React.FC = () => {
                 {t('addChild')}
               </button>
             </div>
+          ) : filteredChildren.length === 0 ? (
+            <div className="p-8 text-center rounded-3xl border border-dashed border-border/80 bg-card/60 backdrop-blur-md">
+              <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
+              <h4 className="font-bold text-foreground">No children in this view</h4>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">All children records are currently updated.</p>
+              <button
+                onClick={() => setFilterStatus('all')}
+                className="text-xs text-teal-600 dark:text-teal-400 font-bold hover:underline"
+              >
+                Show All Children
+              </button>
+            </div>
           ) : (
             <motion.div 
               variants={{
@@ -631,7 +717,7 @@ const ParentDashboard: React.FC = () => {
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-              {children.map((child) => (
+              {filteredChildren.map((child) => (
                 <motion.div
                   key={child.id || child._id}
                   variants={{
