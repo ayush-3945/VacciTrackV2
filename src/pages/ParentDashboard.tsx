@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, CheckCircle, AlertTriangle, Clock, Plus, Baby, Trash2, ArrowRightLeft, Search, MapPin, ExternalLink } from 'lucide-react';
+import { 
+  Calendar, 
+  CheckCircle, 
+  AlertTriangle, 
+  Clock, 
+  Plus, 
+  Baby, 
+  Trash2, 
+  ArrowRightLeft, 
+  ArrowRight,
+  Search, 
+  MapPin, 
+  ExternalLink,
+  FileText
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import ChildCard from '@/components/ChildCard';
 import StatsCard from '@/components/StatsCard';
+import CertificateModal from '@/components/CertificateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { childrenAPI, usersAPI } from '@/lib/api';
@@ -13,6 +28,7 @@ import { MASTER_VACCINE_SCHEDULE } from '@/lib/vaccineSchedule';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface Child {
   _id?: string;
@@ -41,6 +57,7 @@ const ParentDashboard: React.FC = () => {
   const [doctorPreview, setDoctorPreview] = useState<any | null>(null);
   const [isLookingUpDoctor, setIsLookingUpDoctor] = useState(false);
   const [isTransferringDoctor, setIsTransferringDoctor] = useState(false);
+  const [selectedCertificateChild, setSelectedCertificateChild] = useState<any | null>(null);
   const [newChild, setNewChild] = useState({
     name: '',
     dateOfBirth: '',
@@ -345,46 +362,92 @@ const ParentDashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Next Vaccine Alert */}
-        {nextVaccine && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="card-medical p-6 mb-8 border-l-4 border-l-warning"
-          >
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-warning/10">
-                <Calendar className="w-6 h-6 text-warning" />
+        {/* Next Vaccine Priority Alert Banner */}
+        {nextVaccine && (() => {
+          const daysDiff = differenceInDays(nextVaccine.vaccine.dueDate, new Date());
+          const isOverdue = daysDiff < 0;
+          const isDueToday = daysDiff === 0;
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.3 }}
+              className={cn(
+                "mb-8 p-5 sm:p-6 rounded-3xl border backdrop-blur-xl transition-all shadow-md relative overflow-hidden",
+                isOverdue
+                  ? "bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border-rose-500/30 hover:border-rose-500/50"
+                  : "bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/30 hover:border-amber-500/50"
+              )}
+            >
+              {/* Soft Ambient Glow */}
+              <div className={cn(
+                "absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-40",
+                isOverdue ? "bg-rose-500/25" : "bg-amber-500/25"
+              )} />
+
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-4">
+                  {/* Pulsing Icon */}
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md",
+                    isOverdue
+                      ? "bg-rose-500 text-white shadow-rose-500/20"
+                      : "bg-amber-500 text-white shadow-amber-500/20"
+                  )}>
+                    {isOverdue ? <AlertTriangle className="w-6 h-6 animate-pulse" /> : <Clock className="w-6 h-6" />}
+                  </div>
+
+                  <div>
+                    {/* Status Badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className={cn(
+                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border flex items-center gap-1.5",
+                        isOverdue
+                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                          : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                      )}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", isOverdue ? "bg-rose-500 animate-ping" : "bg-amber-500 animate-pulse")} />
+                        {isOverdue ? "🚨 Critical Attention" : "⚡ Priority Action"}
+                      </span>
+
+                      {/* Clean Countdown Badge */}
+                      <span className={cn(
+                        "px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
+                        isOverdue
+                          ? "bg-rose-500 text-white border-rose-600"
+                          : isDueToday
+                            ? "bg-amber-500 text-white border-amber-600"
+                            : "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40"
+                      )}>
+                        {isOverdue
+                          ? `⚠️ ${Math.abs(daysDiff)} ${t('overdueDays')}`
+                          : isDueToday
+                            ? "🚨 Due Today!"
+                            : `⏱️ ${daysDiff} ${t('daysRemaining')}`}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-base sm:text-lg text-foreground font-display">
+                      {t('nextVaccineDue')}: <span className="text-teal-600 dark:text-teal-400">{nextVaccine.vaccine.name}</span>
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      For <span className="font-semibold text-foreground">{nextVaccine.child.name}</span> • Due <span className="font-medium text-foreground">{format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap self-start sm:self-auto active:scale-[0.98]"
+                >
+                  <span>View Full Schedule</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-1">
-                  {t('nextVaccineDue')}: {nextVaccine.vaccine.name}
-                </h3>
-                <p className="text-muted-foreground mb-2">
-                  For {nextVaccine.child.name} • Due {format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}
-                </p>
-                <p className="text-sm">
-                  {differenceInDays(nextVaccine.vaccine.dueDate, new Date()) >= 0 ? (
-                    <span className="text-warning font-medium">
-                      {differenceInDays(nextVaccine.vaccine.dueDate, new Date())} {t('daysRemaining')}
-                    </span>
-                  ) : (
-                    <span className="text-destructive font-medium">
-                      {Math.abs(differenceInDays(nextVaccine.vaccine.dueDate, new Date()))} {t('overdueDays')}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => navigate(`/child/${nextVaccine.child.id}`)}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90"
-              >
-                {t('viewSchedule')}
-              </button>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          );
+        })()}
 
         {/* Children Section */}
         <motion.div
@@ -502,46 +565,38 @@ const ParentDashboard: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-6">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0 },
+                show: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1,
+                  },
+                },
+              }}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               {children.map((child) => (
-                <div key={child.id || child._id} className="relative group">
+                <motion.div
+                  key={child.id || child._id}
+                  variants={{
+                    hidden: { opacity: 0, y: 15 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+                  }}
+                >
                   <ChildCard
                     child={child}
                     onClick={() => navigate(`/child/${child.id || child._id}`)}
+                    onDownloadCertificate={(c) => setSelectedCertificateChild(c)}
+                    onTransferDoctor={(c) => openTransferDialog(c)}
+                    onDeleteChild={(c) => setChildToDelete(c)}
                   />
-                  <div className="mt-2 px-1 flex items-center justify-between gap-3">
-                    <p className="text-xs text-muted-foreground truncate">
-                      Assigned doctor:{' '}
-                      <span className="font-medium text-foreground">
-                        {typeof child.doctorId === 'object'
-                          ? `${child.doctorId.name}${child.doctorId.doctorId ? ` (${child.doctorId.doctorId})` : ''}`
-                          : 'Not assigned'}
-                      </span>
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openTransferDialog(child);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-xs font-medium hover:bg-muted"
-                    >
-                      <ArrowRightLeft className="w-3.5 h-3.5" />
-                      Transfer Doctor
-                    </button>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setChildToDelete(child);
-                    }}
-                    className="absolute top-4 right-4 p-2 rounded-lg bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
-                    title="Delete child"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </motion.div>
       </main>
@@ -658,6 +713,15 @@ const ParentDashboard: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Certificate Preview & Download Modal */}
+      {selectedCertificateChild && (
+        <CertificateModal
+          isOpen={!!selectedCertificateChild}
+          onClose={() => setSelectedCertificateChild(null)}
+          child={selectedCertificateChild}
+        />
+      )}
     </div>
   );
 };

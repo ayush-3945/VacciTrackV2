@@ -26,84 +26,91 @@ const ShieldBadge: React.FC<ShieldBadgeProps> = ({ completedCount, totalCount, s
   };
 
   const levelColors = [
-    'from-gray-400 to-gray-500',
+    'from-slate-400 to-slate-600',
     'from-amber-400 to-amber-600',
-    'from-emerald-400 to-emerald-600',
-    'from-blue-400 to-blue-600',
-    'from-purple-400 to-purple-600',
-    'from-primary to-secondary',
+    'from-emerald-400 to-teal-600',
+    'from-blue-500 to-cyan-600',
+    'from-purple-500 to-indigo-600',
+    'from-emerald-400 via-teal-500 to-cyan-500',
+  ];
+
+  const levelGlows = [
+    'bg-slate-400/20 shadow-slate-500/10',
+    'bg-amber-500/30 shadow-amber-500/20',
+    'bg-emerald-500/35 shadow-emerald-500/25',
+    'bg-blue-500/35 shadow-blue-500/25',
+    'bg-purple-500/40 shadow-purple-500/30',
+    'bg-teal-400/45 shadow-teal-400/35',
   ];
 
   return (
     <div className="flex flex-col items-center gap-2">
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className={cn('relative', sizeClasses[size])}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+        className={cn('relative flex items-center justify-center', sizeClasses[size])}
       >
-        {/* Shield Background */}
+        {/* Soft Radial Ambient Glow */}
         <div
           className={cn(
-            'absolute inset-0 rounded-full bg-gradient-to-br shadow-lg',
+            'absolute inset-0 rounded-full blur-lg opacity-60 transition-opacity',
+            levelGlows[level]
+          )}
+        />
+
+        {/* Shield Background Circle */}
+        <div
+          className={cn(
+            'absolute inset-0 rounded-full bg-gradient-to-br shadow-xl border-2 border-white/20 dark:border-white/10 flex items-center justify-center',
             levelColors[level]
           )}
         />
 
         {/* Shield Icon */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative z-10 flex items-center justify-center">
           <Shield className={cn(
-            'text-primary-foreground drop-shadow-md',
+            'text-white drop-shadow-md',
             size === 'sm' && 'w-8 h-8',
-            size === 'md' && 'w-12 h-12',
-            size === 'lg' && 'w-16 h-16'
+            size === 'md' && 'w-11 h-11',
+            size === 'lg' && 'w-15 h-15'
           )} />
         </div>
 
         {/* Level Stars */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 z-20 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-xs border border-border/50 shadow-xs">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
               className={cn(
-                'drop-shadow',
-                size === 'sm' && 'w-2.5 h-2.5',
-                size === 'md' && 'w-3 h-3',
-                size === 'lg' && 'w-4 h-4',
-                i < level ? 'text-warning fill-warning' : 'text-muted-foreground/30'
+                'transition-all',
+                size === 'sm' && 'w-2 h-2',
+                size === 'md' && 'w-2.5 h-2.5',
+                size === 'lg' && 'w-3.5 h-3.5',
+                i < level ? 'text-amber-400 fill-amber-400 drop-shadow' : 'text-muted-foreground/30'
               )}
             />
           ))}
         </div>
 
-        {/* Glow Effect */}
-        {level >= 4 && (
+        {/* Continuous Pulse Glow for Active Levels */}
+        {level > 0 && (
           <motion.div
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-xl"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+            className={cn('absolute inset-0 rounded-full blur-md pointer-events-none', levelGlows[level])}
           />
         )}
       </motion.div>
 
       {/* Title and Progress */}
-      <div className="text-center">
-        <p className={cn('font-display font-semibold text-foreground', textSizes[size])}>
+      <div className="text-center mt-1">
+        <p className={cn('font-display font-bold text-foreground tracking-tight', textSizes[size])}>
           {title}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] font-medium text-muted-foreground">
           Level {level} • {completedCount}/{totalCount} vaccines
         </p>
-
-        {/* Progress Bar */}
-        <div className="mt-2 w-full h-1.5 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className="h-full bg-gradient-hero rounded-full"
-          />
-        </div>
       </div>
     </div>
   );
