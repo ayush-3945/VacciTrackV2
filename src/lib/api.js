@@ -249,3 +249,27 @@ export const chatAPI = {
   },
 };
 
+// Vaccination Centers & Hospitals API
+export const centersAPI = {
+  getAll: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.type && params.type !== 'all') query.append('type', params.type);
+    if (params.search) query.append('search', params.search);
+    if (params.inStockOnly) query.append('inStockOnly', 'true');
+    if (params.pincode) query.append('pincode', params.pincode);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    const response = await apiRequest(`/centers${queryString}`);
+    return response.data || [];
+  },
+
+  bookSlot: async (bookingData) => {
+    const response = await apiRequest('/centers/book-slot', {
+      method: 'POST',
+      body: JSON.stringify(bookingData),
+    });
+    return response.data;
+  },
+};
+
+

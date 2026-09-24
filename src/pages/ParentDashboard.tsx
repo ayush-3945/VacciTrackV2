@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, CheckCircle, AlertTriangle, Clock, Plus, Baby, Trash2, ArrowRightLeft, Search } from 'lucide-react';
+import { Calendar, CheckCircle, AlertTriangle, Clock, Plus, Baby, Trash2, ArrowRightLeft, Search, MapPin, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/Navbar';
@@ -314,6 +314,35 @@ const ParentDashboard: React.FC = () => {
             icon={Calendar}
             delay={0.3}
           />
+        </div>
+
+        {/* Nearby Vaccination Centers Banner */}
+        <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-teal-500/5 border border-teal-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-sm sm:text-base text-foreground font-display">
+                  Find Government PHCs & Vaccine Centers Nearby
+                </h4>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white">
+                  Live Map
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Discover nearby centers with live stock of NIS 2025 vaccines, walk-in timings & turn-by-turn directions
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/centers')}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap self-start sm:self-auto"
+          >
+            <span>Explore Centers Map 📍</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Next Vaccine Alert */}
