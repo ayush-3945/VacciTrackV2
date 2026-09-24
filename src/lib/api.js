@@ -237,10 +237,7 @@ export const childrenAPI = {
       return response.data;
     } catch (error) {
       if (error.isNetworkError || error.message === 'BACKEND_OFFLINE') {
-        const child = childRepository.findById(childId);
-        if (child) {
-          Object.assign(child, updates);
-        }
+        const child = childRepository.update(childId, updates);
         return child ? { ...child, _id: child.id } : null;
       }
       throw error;
@@ -260,9 +257,12 @@ export const childrenAPI = {
       };
     } catch (error) {
       if (error.isNetworkError || error.message === 'BACKEND_OFFLINE') {
+        const deleted = childRepository.remove(childId);
+        const parentId = localStorage.getItem('vaccitrack_user_id') || 'user_parent_1';
+        const remaining = childRepository.findByParentId(parentId);
         return {
-          success: true,
-          parentDeleted: false,
+          success: deleted,
+          parentDeleted: remaining.length === 0,
           message: 'Child deleted successfully',
         };
       }
@@ -302,7 +302,21 @@ export const childrenAPI = {
       return response;
     } catch (error) {
       if (error.isNetworkError || error.message === 'BACKEND_OFFLINE') {
-        return { success: true, message: 'Transfer completed successfully' };
+        const doc = userRepository.findByDoctorId(newDoctorId) || {
+          id: 'doc_1',
+          name: 'Dr. Rajesh Gupta',
+          hospitalName: 'AIIMS Delhi',
+          doctorId: newDoctorId,
+        };
+        const updated = childRepository.update(childId, {
+          doctorId: {
+            _id: doc.id,
+            name: doc.name,
+            doctorId: newDoctorId,
+            hospitalName: doc.hospitalName,
+          },
+        });
+        return { success: true, data: updated ? { ...updated, _id: updated.id } : null };
       }
       throw error;
     }
