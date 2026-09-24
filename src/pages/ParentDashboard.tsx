@@ -296,31 +296,23 @@ const ParentDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-teal-500/20">
-      {/* Ambient Glowing Gradients & Dot Grid Background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-emerald-500/15 via-teal-500/15 to-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 left-10 w-[450px] h-[350px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -top-32 right-10 w-[450px] h-[350px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.07] dark:opacity-[0.14]" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Welcome Header */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 mb-2 shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 mb-2">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
               <span>National Immunization Schedule (NIS) 2025 Compliant</span>
             </div>
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-foreground tracking-tight">
-              Welcome back, <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-foreground tracking-tight">
+              Welcome back, {user?.name?.split(' ')[0]}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Track and manage your family's vaccination milestones with official ABHA verification.
@@ -328,16 +320,16 @@ const ParentDashboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-semibold text-foreground shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span>{children.length} Children Linked</span>
               <span className="text-border">•</span>
-              <span className="text-teal-600 dark:text-teal-400 font-bold">ABHA Active</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">ABHA Active</span>
             </div>
 
             <button
               onClick={() => setIsAddChildOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md shadow-teal-500/20 transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-xs active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Register Child</span>
@@ -360,20 +352,20 @@ const ParentDashboard: React.FC = () => {
             subtitle={totalStats.pending > 0 ? `${t('dueWithin')} 7 ${t('daysRemaining')}` : undefined}
             icon={Clock}
             variant="warning"
-            delay={0.08}
+            delay={0.05}
           />
           <StatsCard
             title={t('missedVaccines')}
             value={totalStats.overdue}
             icon={AlertTriangle}
             variant="danger"
-            delay={0.16}
+            delay={0.1}
           />
           <StatsCard
             title={t('upcomingVaccines')}
             value={totalStats.upcoming}
             icon={Calendar}
-            delay={0.24}
+            delay={0.15}
           />
         </div>
 
@@ -387,32 +379,19 @@ const ParentDashboard: React.FC = () => {
 
             return (
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.3 }}
-                className={cn(
-                  "p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 shadow-lg hover:shadow-2xl backdrop-blur-xl transition-all relative overflow-hidden flex flex-col justify-between group",
-                  isOverdue
-                    ? "hover:border-rose-500/50 hover:shadow-rose-500/10"
-                    : "hover:border-amber-500/50 hover:shadow-amber-500/10"
-                )}
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="p-5 sm:p-6 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs transition-colors"
               >
-                {/* Top glowing hairline */}
-                <div className={cn(
-                  "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r opacity-70 group-hover:opacity-100 transition-opacity",
-                  isOverdue 
-                    ? "from-rose-500 via-red-400 to-rose-400"
-                    : "from-amber-500 via-orange-400 to-amber-400"
-                )} />
-
                 <div>
                   {/* Status Badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className={cn(
                       "px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border flex items-center gap-1.5",
                       isOverdue
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
-                        : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
                     )}>
                       {isOverdue ? (
                         <>
@@ -429,12 +408,12 @@ const ParentDashboard: React.FC = () => {
 
                     {/* Clean Countdown Badge */}
                     <span className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
+                      "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border",
                       isOverdue
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
                         : isDueToday
-                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                          : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
+                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                          : "bg-secondary text-muted-foreground border-border"
                     )}>
                       {isOverdue ? (
                         <>
@@ -448,7 +427,7 @@ const ParentDashboard: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span>{daysDiff} {t('daysRemaining')}</span>
                         </>
                       )}
@@ -457,30 +436,30 @@ const ParentDashboard: React.FC = () => {
 
                   <div className="flex items-start gap-3.5 mb-4">
                     <div className={cn(
-                      "w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110 shadow-2xs",
+                      "w-11 h-11 rounded-xl border flex items-center justify-center flex-shrink-0 shadow-xs",
                       isOverdue
-                        ? "bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400"
-                        : "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                        ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
+                        : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
                     )}>
-                      {isOverdue ? <AlertTriangle className="w-6 h-6 animate-pulse" /> : <Clock className="w-6 h-6" />}
+                      {isOverdue ? <AlertTriangle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                     </div>
 
                     <div className="min-w-0">
                       <h3 className="font-bold text-base sm:text-lg text-foreground font-display truncate">
                         {nextVaccine.vaccine.name}
                       </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         For <span className="font-semibold text-foreground">{nextVaccine.child.name}</span> • Due <span className="font-medium text-foreground">{format(nextVaccine.vaccine.dueDate, 'dd MMM yyyy')}</span>
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3.5 border-t border-border/60 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">National Immunization Schedule</span>
+                <div className="pt-3 border-t border-border flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">National Immunization Schedule</span>
                   <button
                     onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-colors whitespace-nowrap active:scale-[0.98]"
                   >
                     <span>View Schedule</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -489,10 +468,10 @@ const ParentDashboard: React.FC = () => {
               </motion.div>
             );
           })() : (
-            <div className="p-5 sm:p-7 rounded-3xl border border-emerald-500/30 bg-card/85 backdrop-blur-xl flex flex-col justify-between shadow-lg">
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card flex flex-col justify-between shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
-                  <CheckCircle className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
+                  <CheckCircle className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="font-bold text-base text-foreground font-display">All Vaccinations Up-to-Date!</h4>
@@ -503,43 +482,40 @@ const ParentDashboard: React.FC = () => {
           )}
 
           {/* Nearby Vaccination Centers Card */}
-          <div className="p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-cyan-500/50 shadow-lg hover:shadow-2xl hover:shadow-cyan-500/10 transition-all backdrop-blur-xl flex flex-col justify-between relative overflow-hidden group">
-            {/* Top glowing hairline */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 via-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
-
+          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs transition-colors">
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground border border-border flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Live GPS Locator
                 </span>
-                <span className="text-[11px] font-semibold text-cyan-600 dark:text-cyan-400">11+ Verified Centers</span>
+                <span className="text-[11px] font-semibold text-muted-foreground">11+ Verified Centers</span>
               </div>
 
               <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-2xs flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <MapPin className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shadow-xs flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-emerald-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display">
                     Find Government PHCs & Clinics
                   </h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                     Check walk-in timings, live stock of NIS 2025 vaccines & get 1-click turn-by-turn directions.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="pt-3.5 border-t border-border/60 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">Nearby & State Registry</span>
+            <div className="pt-3 border-t border-border flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Nearby & State Registry</span>
               <button
                 onClick={() => navigate('/centers')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-colors whitespace-nowrap active:scale-[0.98]"
               >
-                <MapPin className="w-3.5 h-3.5" />
+                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Explore Centers Map</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </div>
           </div>
@@ -547,9 +523,9 @@ const ParentDashboard: React.FC = () => {
 
         {/* Children Section */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.15 }}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 mb-5">
             <div>
@@ -557,7 +533,7 @@ const ParentDashboard: React.FC = () => {
                 <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">
                   {t('children')}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground border border-border">
                   {children.length} Registered
                 </span>
               </div>
@@ -568,12 +544,12 @@ const ParentDashboard: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Filter Pills */}
-              <div className="flex items-center p-1 rounded-2xl bg-muted/80 border border-border/70 text-xs font-semibold shadow-2xs">
+              <div className="flex items-center p-1 rounded-xl bg-secondary border border-border text-xs font-semibold shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setFilterStatus('all')}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl transition-all",
+                    "px-3 py-1.5 rounded-lg transition-all",
                     filterStatus === 'all'
                       ? "bg-card text-foreground shadow-xs font-bold"
                       : "text-muted-foreground hover:text-foreground"
@@ -585,7 +561,7 @@ const ParentDashboard: React.FC = () => {
                   type="button"
                   onClick={() => setFilterStatus('overdue')}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5",
+                    "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5",
                     filterStatus === 'overdue'
                       ? "bg-rose-500 text-white shadow-xs font-bold"
                       : "text-rose-600 dark:text-rose-400 hover:text-rose-700"
@@ -599,7 +575,7 @@ const ParentDashboard: React.FC = () => {
                   type="button"
                   onClick={() => setFilterStatus('ontrack')}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl transition-all",
+                    "px-3 py-1.5 rounded-lg transition-all",
                     filterStatus === 'ontrack'
                       ? "bg-emerald-600 text-white shadow-xs font-bold"
                       : "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700"
@@ -612,7 +588,7 @@ const ParentDashboard: React.FC = () => {
               {/* Add Child Dialog */}
               <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
                 <DialogTrigger asChild>
-                  <button className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-teal-500/20 active:scale-95 transition-all">
+                  <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium shadow-xs transition-all">
                     <Plus className="w-3.5 h-3.5" />
                     <span>{t('addChild')}</span>
                   </button>
@@ -717,13 +693,13 @@ const ParentDashboard: React.FC = () => {
               </button>
             </div>
           ) : filteredChildren.length === 0 ? (
-            <div className="p-8 text-center rounded-3xl border border-dashed border-border/80 bg-card/60 backdrop-blur-md">
+            <div className="p-8 text-center rounded-2xl border border-dashed border-border bg-card">
               <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <h4 className="font-bold text-foreground">No children in this view</h4>
+              <h4 className="font-semibold text-foreground">No children in this view</h4>
               <p className="text-xs text-muted-foreground mt-1 mb-3">All children records are currently updated.</p>
               <button
                 onClick={() => setFilterStatus('all')}
-                className="text-xs text-teal-600 dark:text-teal-400 font-bold hover:underline"
+                className="text-xs text-emerald-400 font-medium hover:underline"
               >
                 Show All Children
               </button>

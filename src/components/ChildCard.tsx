@@ -3,13 +3,11 @@ import { format, differenceInMonths, differenceInYears, differenceInDays } from 
 import { 
   User, 
   Calendar, 
-  CreditCard, 
   ChevronRight, 
   ArrowRight, 
   ArrowRightLeft, 
   Trash2, 
   Stethoscope,
-  Sparkles,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -46,103 +44,92 @@ interface ChildCardProps {
 const ChildCard: React.FC<ChildCardProps> = ({ 
   child, 
   onClick, 
-  onDownloadCertificate, 
-  onTransferDoctor, 
-  onDeleteChild, 
-  compact 
+  onDownloadCertificate,
+  onTransferDoctor,
+  onDeleteChild,
+  compact = false 
 }) => {
+  const getAge = (dob: Date | string) => {
+    const birthDate = new Date(dob);
+    const now = new Date();
+    const years = differenceInYears(now, birthDate);
+    const months = differenceInMonths(now, birthDate) % 12;
+
+    if (years === 0) {
+      if (months === 0) {
+        const days = differenceInDays(now, birthDate);
+        return `${days} day${days !== 1 ? 's' : ''} old`;
+      }
+      return `${months} month${months !== 1 ? 's' : ''} old`;
+    }
+    return `${years} yr${years !== 1 ? 's' : ''} ${months > 0 ? `${months} mo` : ''}`.trim();
+  };
+
   const schedule = child.schedule || [];
   const completedCount = schedule.filter(v => v.status === 'COMPLETED').length;
   const overdueCount = schedule.filter(v => v.status === 'OVERDUE').length;
   const pendingCount = schedule.filter(v => v.status === 'PENDING').length;
-  const totalCount = MASTER_VACCINE_SCHEDULE.length; // 26 doses in NIS 2025
-  const progressPercent = Math.min(100, Math.round((completedCount / totalCount) * 100));
+  const totalCount = MASTER_VACCINE_SCHEDULE.length;
+  const progressPercent = Math.round((completedCount / totalCount) * 100);
 
-  // Find the next upcoming/overdue milestone specifically for this child
+  // Next upcoming or overdue vaccine for this specific child
   const nextChildVaccine = schedule
-    .filter(v => v.status === 'OVERDUE' || v.status === 'PENDING' || v.status === 'UPCOMING')
+    .filter(v => v.status === 'PENDING' || v.status === 'OVERDUE')
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
-
-  const getAge = (dob: Date | string) => {
-    const dobDate = dob instanceof Date ? dob : new Date(dob);
-    if (isNaN(dobDate.getTime())) return '';
-    const years = differenceInYears(new Date(), dobDate);
-    if (years >= 1) return `${years} year${years > 1 ? 's' : ''} old`;
-    
-    const months = differenceInMonths(new Date(), dobDate);
-    if (months >= 1) return `${months} month${months > 1 ? 's' : ''} old`;
-    
-    const days = differenceInDays(new Date(), dobDate);
-    return `${days} day${days > 1 ? 's' : ''} old`;
-  };
 
   const formattedDob = () => {
     try {
-      const dobDate = child.dateOfBirth instanceof Date ? child.dateOfBirth : new Date(child.dateOfBirth);
-      return !isNaN(dobDate.getTime()) ? format(dobDate, 'dd MMM yyyy') : 'N/A';
-    } catch {
+      return format(new Date(child.dateOfBirth), 'dd MMM yyyy');
+    } catch (e) {
       return 'N/A';
     }
   };
 
-  const formattedAbha = child.abhaId
-    ? child.abhaId.replace(/\s+/g, '').replace(/(\d{4})/g, '$1 ').trim()
-    : 'N/A';
+  const formattedAbha = child.abhaId 
+    ? child.abhaId.replace(/(\d{2})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')
+    : 'Not Assigned';
 
-  const doctorName = typeof child.doctorId === 'object' && child.doctorId
+  const doctorName = typeof child.doctorId === 'object' && child.doctorId !== null
     ? child.doctorId.name
-    : 'Not assigned';
+    : 'PHC Medical Officer';
 
   if (compact) {
     return (
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <div 
         onClick={onClick}
-        className="backdrop-blur-md bg-card/75 border border-border/70 hover:border-emerald-500/40 hover:shadow-lg transition-all rounded-2xl p-4 cursor-pointer"
+        className="p-4 rounded-xl border border-border bg-card hover:bg-card/90 cursor-pointer transition-colors shadow-xs"
       >
-        <div className="flex items-center gap-4">
-          <div className={cn(
-            'w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-xs',
-            child.gender === 'male' 
-              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25' 
-              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25'
-          )}>
-            <User className="w-6 h-6" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground font-semibold">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground">{child.name}</h4>
+              <p className="text-xs text-muted-foreground">{getAge(child.dateOfBirth)}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">{child.name}</h3>
-            <p className="text-xs text-muted-foreground">{getAge(child.dateOfBirth)}</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
-      className="backdrop-blur-xl bg-card/85 border border-border/80 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all rounded-3xl p-5 sm:p-6 relative overflow-hidden group flex flex-col justify-between"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card hover:bg-card/95 border border-border transition-colors rounded-2xl p-5 sm:p-6 relative flex flex-col justify-between shadow-xs"
     >
-      {/* Top subtle gradient hairline */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 opacity-70 group-hover:opacity-100 transition-opacity" />
-
       <div>
         {/* Card Header: Avatar + Name + Age + Overdue Badge + Delete */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3.5">
-            <div className={cn(
-              'w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border flex-shrink-0 relative',
-              child.gender === 'male'
-                ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
-                : 'bg-gradient-to-br from-pink-500/20 to-rose-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30'
-            )}>
-              <User className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center flex-shrink-0 relative shadow-2xs">
+              <User className="w-6 h-6 text-muted-foreground" />
               <span className={cn(
-                'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card flex items-center justify-center text-[9px] font-bold text-white',
-                child.gender === 'male' ? 'bg-blue-600' : 'bg-pink-600'
+                'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-card flex items-center justify-center text-[8px] font-bold text-white',
+                child.gender === 'male' ? 'bg-blue-600' : 'bg-rose-500'
               )}>
                 {child.gender === 'male' ? 'M' : 'F'}
               </span>
@@ -151,15 +138,15 @@ const ChildCard: React.FC<ChildCardProps> = ({
               <div className="flex items-center gap-2">
                 <h3 
                   onClick={onClick}
-                  className="font-display font-bold text-xl sm:text-2xl text-foreground hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-pointer"
+                  className="font-display font-bold text-lg sm:text-xl text-foreground hover:text-emerald-500 transition-colors cursor-pointer"
                 >
                   {child.name}
                 </h3>
               </div>
-              <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mt-0.5">
                 <span>{getAge(child.dateOfBirth)}</span>
                 <span className="text-border">•</span>
-                <span className="text-teal-600 dark:text-teal-400">NIS 2025 Schedule</span>
+                <span>NIS 2025 Schedule</span>
               </p>
             </div>
           </div>
@@ -167,15 +154,13 @@ const ChildCard: React.FC<ChildCardProps> = ({
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Overdue Warning Badge */}
             {overdueCount > 0 && (
-              <motion.div
-                animate={{ scale: [1, 1.04, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs"
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                 title={`${overdueCount} vaccinations require immediate attention`}
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                 <span>{overdueCount} Overdue</span>
-              </motion.div>
+              </div>
             )}
 
             {/* Delete Button */}
@@ -186,7 +171,7 @@ const ChildCard: React.FC<ChildCardProps> = ({
                   e.stopPropagation();
                   onDeleteChild(child);
                 }}
-                className="p-1.5 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-60 group-hover:opacity-100"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                 title="Delete child record"
               >
                 <Trash2 className="w-4 h-4" />
@@ -197,49 +182,49 @@ const ChildCard: React.FC<ChildCardProps> = ({
 
         {/* DOB & ABHA Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4 text-xs font-medium text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 border border-border/70 shadow-2xs">
-            <Calendar className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-secondary border border-border shadow-2xs">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="text-muted-foreground">DOB:</span>
             <span className="font-semibold text-foreground">{formattedDob()}</span>
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 border border-border/70 shadow-2xs font-mono">
-            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">ABHA</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-secondary border border-border shadow-2xs font-mono">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">ABHA</span>
             <span className="font-semibold text-foreground tracking-wider">{formattedAbha}</span>
           </span>
         </div>
 
         {/* Middle Section: Elevated Stats & Shield Badge */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 items-stretch mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-stretch mb-4">
           {/* Stats Chips & Progress Gauge (2 cols) */}
           <div className="sm:col-span-2 space-y-3 flex flex-col justify-between">
-            {/* 3 Sleek Glass Stat Counters */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center relative overflow-hidden group/stat hover:border-emerald-500/50 transition-colors shadow-2xs">
+            {/* 3 Sleek Neutral Stat Counters */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
                   <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Completed</span>
+                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Completed</span>
                 </div>
-                <p className="text-xl sm:text-2xl font-black font-display text-emerald-600 dark:text-emerald-400 leading-tight">
+                <p className="text-xl font-bold font-display text-emerald-600 dark:text-emerald-400 leading-tight">
                   {completedCount}
                 </p>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center relative overflow-hidden group/stat hover:border-amber-500/50 transition-colors shadow-2xs">
+              <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
                   <Clock className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Pending</span>
+                  <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Pending</span>
                 </div>
-                <p className="text-xl sm:text-2xl font-black font-display text-amber-600 dark:text-amber-400 leading-tight">
+                <p className="text-xl font-bold font-display text-amber-600 dark:text-amber-400 leading-tight">
                   {pendingCount}
                 </p>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-center relative overflow-hidden group/stat hover:border-rose-500/50 transition-colors shadow-2xs">
+              <div className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/20 text-center">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
                   <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Overdue</span>
+                  <span className="text-[10px] font-semibold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Overdue</span>
                 </div>
-                <p className="text-xl sm:text-2xl font-black font-display text-rose-600 dark:text-rose-400 leading-tight">
+                <p className="text-xl font-bold font-display text-rose-600 dark:text-rose-400 leading-tight">
                   {overdueCount}
                 </p>
               </div>
@@ -248,31 +233,29 @@ const ChildCard: React.FC<ChildCardProps> = ({
             {/* Dynamic Immunity Health Gauge */}
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 font-bold text-foreground">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span>Immunization Shield</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     {progressPercent}% Protected
                   </span>
                 </div>
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  <strong className="text-foreground font-bold">{completedCount}</strong> of {totalCount} Doses
+                  <strong className="text-foreground font-semibold">{completedCount}</strong> of {totalCount} Doses
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-muted/80 rounded-full overflow-hidden p-0.5 border border-border/70 shadow-inner">
+              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden p-0.5 border border-border shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 1.1, ease: 'easeOut' }}
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 relative"
-                >
-                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                </motion.div>
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  className="h-full rounded-full bg-emerald-500"
+                />
               </div>
             </div>
           </div>
 
-          {/* Shield Tier Badge (1 col, perfectly aligned container) */}
+          {/* Shield Tier Badge */}
           <div className="sm:col-span-1 flex">
             <ShieldBadge
               completedCount={completedCount}
@@ -286,10 +269,10 @@ const ChildCard: React.FC<ChildCardProps> = ({
         {/* Milestone Indicator: Next Dose for this Child */}
         {nextChildVaccine && (
           <div className={cn(
-            "flex items-center justify-between text-xs px-3.5 py-2 rounded-xl border mb-3 shadow-2xs",
+            "flex items-center justify-between text-xs px-3.5 py-2 rounded-xl border mb-3",
             nextChildVaccine.status === 'OVERDUE'
-              ? "bg-rose-500/10 border-rose-500/25 text-rose-700 dark:text-rose-300"
-              : "bg-teal-500/10 border-teal-500/25 text-teal-800 dark:text-teal-200"
+              ? "bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-300"
+              : "bg-secondary border-border text-foreground"
           )}>
             <div className="flex items-center gap-1.5 truncate">
               {nextChildVaccine.status === 'OVERDUE' ? (
@@ -298,23 +281,23 @@ const ChildCard: React.FC<ChildCardProps> = ({
                   Due Now:
                 </span>
               ) : (
-                <span className="font-semibold">Next Dose:</span>
+                <span className="font-semibold text-muted-foreground">Next Dose:</span>
               )}
               <span className="font-bold truncate">{nextChildVaccine.name}</span>
             </div>
-            <span className="text-[11px] font-mono whitespace-nowrap opacity-90 font-medium">
+            <span className="text-[11px] font-mono whitespace-nowrap opacity-80 font-medium">
               {format(new Date(nextChildVaccine.dueDate), 'dd MMM yyyy')}
             </span>
           </div>
         )}
 
         {/* Assigned Doctor & Transfer Row */}
-        <div className="flex items-center justify-between gap-2 text-xs py-2 px-3 rounded-xl bg-muted/40 border border-border/50 mb-4">
+        <div className="flex items-center justify-between gap-2 text-xs py-2 px-3 rounded-xl bg-secondary border border-border mb-4">
           <div className="flex items-center gap-2 truncate text-muted-foreground">
-            <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 flex-shrink-0" />
+            <Stethoscope className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
             <span className="truncate">
               Assigned Doctor:{' '}
-              <span className="font-bold text-foreground">
+              <span className="font-semibold text-foreground">
                 {doctorName}
               </span>
             </span>
@@ -326,7 +309,7 @@ const ChildCard: React.FC<ChildCardProps> = ({
                 e.stopPropagation();
                 onTransferDoctor(child);
               }}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline flex-shrink-0 transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex-shrink-0"
             >
               <ArrowRightLeft className="w-3 h-3" />
               Transfer
@@ -336,16 +319,16 @@ const ChildCard: React.FC<ChildCardProps> = ({
       </div>
 
       {/* Prominent Bottom Action Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3.5 border-t border-border/70">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-border">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDownloadCertificate?.(child);
           }}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-foreground bg-muted hover:bg-muted/80 border border-border/80 hover:border-emerald-500/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all shadow-xs active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-colors shadow-2xs active:scale-[0.98]"
         >
-          <FileText className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+          <FileText className="w-4 h-4 text-muted-foreground" />
           <span>Download Certificate</span>
         </button>
 
@@ -355,10 +338,10 @@ const ChildCard: React.FC<ChildCardProps> = ({
             e.stopPropagation();
             onClick?.();
           }}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-700 hover:to-emerald-700 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 transition-all active:scale-[0.98] group/btn"
+          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-xs active:scale-[0.98]"
         >
           <span>View Full Timeline</span>
-          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </motion.div>

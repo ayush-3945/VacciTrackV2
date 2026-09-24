@@ -355,15 +355,7 @@ const DoctorDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-teal-500/20">
-      {/* Ambient Glowing Gradients & Dot Grid Background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-cyan-500/15 via-teal-500/15 to-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 left-10 w-[450px] h-[350px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -top-32 right-10 w-[450px] h-[350px] bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.07] dark:opacity-[0.14]" />
-      </div>
-
+    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-emerald-500/20">
       <Navbar />
       <ConfettiExplosion trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
 
@@ -376,11 +368,11 @@ const DoctorDashboard: React.FC = () => {
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/25 mb-2 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-secondary text-muted-foreground border border-border mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Authorized Pediatric Healthcare Provider Session</span>
               </div>
-              <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-foreground tracking-tight">
+              <h1 className="font-display font-semibold text-2xl sm:text-3xl text-foreground tracking-tight">
                 Doctor & Clinic Portal
               </h1>
             </div>
@@ -389,7 +381,7 @@ const DoctorDashboard: React.FC = () => {
                 type="button"
                 onClick={handleDeleteDoctorAccount}
                 disabled={isDeletingAccount}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-destructive/30 text-destructive text-sm font-medium hover:bg-destructive/5 transition disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-destructive/30 text-destructive text-sm font-medium hover:bg-destructive/10 transition disabled:opacity-60"
               >
                 <Trash2 className="w-4 h-4" />
                 {isDeletingAccount ? 'Deleting account...' : 'Delete Doctor'}
@@ -397,14 +389,14 @@ const DoctorDashboard: React.FC = () => {
               <AddChildForm onSuccess={handleChildRegistered} />
             </div>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Building2 className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <Building2 className="w-4 h-4 text-muted-foreground/70" />
             <span>{user?.hospitalName || 'Healthcare Facility'}</span>
           </div>
           {user?.doctorId && (
-            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5">
+            <div className="mt-2.5 inline-flex items-center gap-2 px-3 py-1 rounded-md border border-border bg-secondary/40">
               <span className="text-xs uppercase tracking-wide text-muted-foreground">Doctor ID</span>
-              <span className="font-mono text-sm font-semibold text-primary">{user.doctorId}</span>
+              <span className="font-mono text-xs font-semibold text-foreground">{user.doctorId}</span>
             </div>
           )}
         </motion.div>
@@ -447,15 +439,15 @@ const DoctorDashboard: React.FC = () => {
           transition={{ delay: 0.4 }}
           className="mb-8"
         >
-          <div className="card-medical p-4">
+          <div className="bg-card border border-border rounded-xl p-3 shadow-xs">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                placeholder="Search by child name or ABHA ID..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-secondary/50 text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                placeholder="Search patient by child name or ABHA ID..."
               />
             </div>
           </div>
@@ -467,28 +459,33 @@ const DoctorDashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <h2 className="font-display font-semibold text-xl text-foreground mb-4">
-            {searchQuery ? `Search Results (${filteredChildren.length})` : t('patientList')}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold text-lg text-foreground">
+              {searchQuery ? `Search Results (${filteredChildren.length})` : t('patientList')}
+            </h2>
+            <span className="text-xs text-muted-foreground">{filteredChildren.length} registered</span>
+          </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredChildren.map((child) => (
               <motion.div
                 key={child.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => setSelectedChild(child)}
-                className="card-medical p-4 cursor-pointer"
+                className="bg-card border border-border hover:border-slate-700/80 rounded-xl p-4 cursor-pointer transition-all shadow-xs group"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    child.gender === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-11 h-11 rounded-lg flex items-center justify-center font-medium text-sm border ${
+                    child.gender === 'male' 
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                   }`}>
-                    <Users className="w-6 h-6" />
+                    {child.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{child.name}</h3>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-foreground group-hover:text-emerald-400 transition-colors truncate">{child.name}</h3>
+                    <p className="text-xs text-muted-foreground font-mono truncate">
                       ABHA: {child.abhaId.substring(0, 4)}...{child.abhaId.substring(10)}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -496,34 +493,34 @@ const DoctorDashboard: React.FC = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-xs">
-                      <span className="text-success">{child.schedule.filter(v => v.status === 'COMPLETED').length}</span>
+                    <div className="flex items-center justify-end gap-1 text-xs">
+                      <span className="text-emerald-400 font-semibold">{child.schedule.filter(v => v.status === 'COMPLETED').length}</span>
                       <span className="text-muted-foreground">/</span>
                       <span className="text-muted-foreground">{child.schedule.length}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">completed</p>
+                    <p className="text-[11px] text-muted-foreground">completed</p>
                   </div>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-border">
                   <div className="text-center">
-                    <p className="text-lg font-semibold text-success">
+                    <p className="text-base font-semibold text-emerald-400">
                       {child.schedule.filter(v => v.status === 'COMPLETED').length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Done</p>
+                    <p className="text-[11px] text-muted-foreground">Done</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-semibold text-warning">
+                    <p className="text-base font-semibold text-amber-400">
                       {child.schedule.filter(v => v.status === 'PENDING').length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Pending</p>
+                    <p className="text-[11px] text-muted-foreground">Pending</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-semibold text-destructive">
+                    <p className="text-base font-semibold text-rose-400">
                       {child.schedule.filter(v => v.status === 'OVERDUE').length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Overdue</p>
+                    <p className="text-[11px] text-muted-foreground">Overdue</p>
                   </div>
                 </div>
               </motion.div>
@@ -534,10 +531,10 @@ const DoctorDashboard: React.FC = () => {
 
       {/* Patient Detail Modal */}
       <Dialog open={!!selectedChild} onOpenChange={() => setSelectedChild(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card border border-border">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Syringe className="w-5 h-5 text-primary" />
+            <DialogTitle className="flex items-center gap-2.5 text-foreground">
+              <Syringe className="w-5 h-5 text-emerald-500" />
               Patient Record: {selectedChild?.name}
             </DialogTitle>
           </DialogHeader>
@@ -545,34 +542,34 @@ const DoctorDashboard: React.FC = () => {
           {selectedChild && (
             <div className="mt-4">
               {/* Patient Info */}
-              <div className="card-medical p-4 mb-6 space-y-4">
+              <div className="bg-secondary/40 border border-border rounded-xl p-4 mb-6 space-y-4">
                 {/* Action buttons */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2.5">
                     <button
                       type="button"
                       onClick={handleSendReminder}
                       disabled={isSendingReminder}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium transition disabled:opacity-60 shadow-xs"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition disabled:opacity-60 shadow-xs"
                     >
-                      <Bell className="w-4 h-4" />
+                      <Bell className="w-3.5 h-3.5" />
                       {isSendingReminder ? 'Sending...' : 'Send Reminder'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditing((prev) => !prev)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground border border-border text-xs font-medium transition"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3.5 h-3.5" />
                       {isEditing ? 'Cancel edit' : 'Edit details'}
                     </button>
                     <button
                       type="button"
                       onClick={handleDeleteChild}
                       disabled={isDeleting}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-destructive/30 text-destructive text-sm font-medium hover:bg-destructive/5 transition disabled:opacity-60"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition disabled:opacity-60"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                       {isDeleting ? 'Deleting...' : 'Delete patient'}
                     </button>
                   </div>

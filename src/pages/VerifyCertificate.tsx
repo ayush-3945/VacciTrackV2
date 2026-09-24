@@ -144,20 +144,20 @@ const VerifyCertificate: React.FC = () => {
             className="space-y-6"
           >
             {/* Verified Header Banner */}
-            <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-teal-950/30 to-emerald-950/40 border border-emerald-500/30 text-center relative overflow-hidden shadow-lg shadow-emerald-500/5">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 flex items-center justify-center mx-auto mb-3 shadow-inner">
-                <ShieldCheck className="w-9 h-9" />
+            <div className="p-6 rounded-2xl bg-card border border-border text-center relative overflow-hidden shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+                <ShieldCheck className="w-8 h-8" />
               </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 inline-block mb-2">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-block mb-2">
                 Official Record Verified
               </span>
-              <h1 className="text-2xl font-bold font-display text-foreground">
+              <h1 className="text-2xl font-semibold font-display text-foreground">
                 Vaccination Record Authenticated
               </h1>
               <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
                 This certificate is verified by VacciTrack UIP Registry in full compliance with National Immunization Schedule (NIS 2025).
               </p>
-              <div className="text-[11px] font-mono text-emerald-500/80 mt-3">
+              <div className="text-[11px] font-mono text-muted-foreground mt-3">
                 Verified at: {format(new Date(data.verifiedAt), 'dd MMM yyyy, hh:mm:ss a')}
               </div>
             </div>
@@ -271,7 +271,7 @@ const VerifyCertificate: React.FC = () => {
               <Button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="bg-teal-600 hover:bg-teal-700 text-white gap-2 text-xs"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2 text-xs"
               >
                 <Download className="w-4 h-4" />
                 {isDownloading ? 'Generating PDF...' : 'Download Official PDF Certificate'}
