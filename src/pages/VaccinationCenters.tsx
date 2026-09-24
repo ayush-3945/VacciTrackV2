@@ -130,14 +130,25 @@ const userLocationIcon = L.divIcon({
   popupAnchor: [0, -16],
 });
 
-// Map Controller Component for Pan/Zoom
+// Map Controller Component for Pan/Zoom & Sizing
 const MapController: React.FC<{
   centerCoords?: [number, number];
   zoomLevel?: number;
 }> = ({ centerCoords, zoomLevel = 14 }) => {
   const map = useMap();
+
   useEffect(() => {
-    if (centerCoords) {
+    map.invalidateSize();
+    const timers = [
+      setTimeout(() => map.invalidateSize(), 100),
+      setTimeout(() => map.invalidateSize(), 300),
+      setTimeout(() => map.invalidateSize(), 800),
+    ];
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [map]);
+
+  useEffect(() => {
+    if (centerCoords && centerCoords[0] && centerCoords[1]) {
       map.flyTo(centerCoords, zoomLevel, {
         duration: 1.2,
       });
@@ -301,7 +312,7 @@ const VaccinationCenters: React.FC = () => {
       <Navbar />
 
       {/* Main Container */}
-      <main className="flex-1 flex flex-col pt-16">
+      <main className="flex-1 flex flex-col">
         {/* Top Control Bar */}
         <section className="bg-card border-b border-border px-4 py-3.5 sm:px-6 shadow-xs z-10">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -558,17 +569,20 @@ const VaccinationCenters: React.FC = () => {
           </div>
 
           {/* Right Column: Leaflet Interactive Map View */}
-          <div className="flex-1 h-[55vh] lg:h-full relative z-0">
+          <div className="flex-1 w-full h-[55vh] lg:h-full min-h-[500px] relative z-0">
             <MapContainer
               center={mapTarget}
               zoom={mapZoom}
               scrollWheelZoom={true}
+              style={{ width: '100%', height: '100%', minHeight: '500px' }}
               className="w-full h-full"
             >
-              {/* TileLayer with crisp clean OpenStreetMap tiles */}
+              {/* TileLayer with ultra-reliable CARTO Voyager tiles */}
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                subdomains="abcd"
+                maxZoom={19}
               />
 
               <MapController centerCoords={mapTarget} zoomLevel={mapZoom} />
