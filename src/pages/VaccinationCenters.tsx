@@ -577,11 +577,10 @@ const VaccinationCenters: React.FC = () => {
               style={{ width: '100%', height: '100%', minHeight: '500px' }}
               className="w-full h-full"
             >
-              {/* TileLayer with ultra-reliable CARTO Voyager tiles */}
+              {/* 100% Free OpenStreetMap Tiles — No API key, No watermark */}
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                subdomains="abcd"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
               />
 
