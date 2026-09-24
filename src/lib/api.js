@@ -459,9 +459,39 @@ export const notificationsAPI = {
   },
 };
 
-// VaxBot AI Chat API
+// VaxBot AI Chat API (with n8n RAG Integration & Offline Fallback)
 export const chatAPI = {
   ask: async (message, context = {}) => {
+    // 1. If direct n8n RAG Webhook is configured, call n8n RAG pipeline directly
+    const n8nWebhook = import.meta.env.VITE_N8N_RAG_WEBHOOK_URL;
+    if (n8nWebhook) {
+      try {
+        const n8nRes = await fetch(n8nWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, query: message, context }),
+        });
+        if (n8nRes.ok) {
+          const n8nJson = await n8nRes.json();
+          const replyText = n8nJson.reply || n8nJson.output || n8nJson.text;
+          if (replyText) {
+            return {
+              reply: replyText,
+              suggestions: n8nJson.suggestions || [
+                'Fever after vaccination?',
+                'BCG scar guidelines',
+                'Download Certificate',
+              ],
+              rag_verified: true,
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('n8n RAG Webhook unavailable, using backend fallback:', err);
+      }
+    }
+
+    // 2. Query VacciTrack backend chat API
     try {
       const response = await apiRequest('/chat/ask', {
         method: 'POST',
@@ -471,7 +501,12 @@ export const chatAPI = {
     } catch (error) {
       if (error.isNetworkError || error.message === 'BACKEND_OFFLINE') {
         return {
-          response: `Namaste! Under the National Immunization Schedule (NIS 2025), all primary vaccinations like BCG, Hepatitis B, Pentavalent, OPV/IPV, Rotavirus, and MR are 100% free and essential for your child's immunity. For queries regarding "${message.substring(0, 30)}...", please refer to your child's timeline or consult your nearest Government PHC.`,
+          reply: `Namaste! Under the National Immunization Schedule (NIS 2025), all primary vaccinations like BCG, Hepatitis B, Pentavalent, OPV/IPV, Rotavirus, and MR are 100% free and essential for your child's immunity. For queries regarding "${message.substring(0, 30)}...", please refer to your child's timeline or consult your nearest Government PHC.`,
+          suggestions: [
+            'Fever after vaccine?',
+            'NIS 2025 schedule overview',
+            'Download Certificate',
+          ],
         };
       }
       throw error;

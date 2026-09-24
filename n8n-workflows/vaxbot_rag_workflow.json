@@ -1,0 +1,193 @@
+{
+  "name": "VaxBot NIS 2025 RAG Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vaxbot-query",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-trigger",
+      "name": "VaxBot Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "vaxbot-query-webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message || $json.body.query || 'Hello' }}",
+        "options": {
+          "systemMessage": "You are VaxBot, an authorized AI Pediatric & Vaccine Assistant for VacciTrack operating under India's National Immunization Schedule (NIS 2025) and MoHFW guidelines.\n\nStrict Guidelines:\n1. Base your clinical answers directly on the retrieved NIS 2025 Knowledge Base.\n2. Support bilingual interactions in English, Hindi, and Hinglish (friendly conversational romanized Hindi).\n3. Keep instructions empathetic, precise, and practical for parents (e.g., light cotton clothes for fever, cold compress for injection swelling, never massage injection sites).\n4. Highlight urgent red flag warnings when temperature exceeds 102°F or persists beyond 48 hours.\n5. Always remind the parent to consult their pediatrician in emergency cases."
+        }
+      },
+      "id": "node-ai-agent",
+      "name": "RAG AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "node-gemini-chat-model",
+      "name": "Google Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [440, 520],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gemini-api-cred",
+          "name": "Google Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "nis_2025_guidelines",
+        "description": "Searches and retrieves official NIS 2025 vaccines, dosage schedules, catch-up rules, and fever/AEFI care guidelines."
+      },
+      "id": "node-retriever-tool",
+      "name": "NIS 2025 Guidelines Retriever",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [640, 520]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "node-vector-store",
+      "name": "In-Memory Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [640, 720]
+    },
+    {
+      "parameters": {},
+      "id": "node-embeddings",
+      "name": "Embeddings Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [580, 920],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gemini-api-cred",
+          "name": "Google Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value": "# National Immunization Schedule (NIS 2025) & AEFI Protocols\n- BCG: At birth up to 1 yr. 0.1 ml ID left upper arm. Blister at 6-12 wks is normal. Do not squeeze or apply ointment.\n- Pentavalent (DTP+HepB+Hib): 6, 10, 14 wks. 0.5 ml IM mid-thigh. Mild fever 24-48 hrs is normal.\n- Post-Vaccine Fever Care: Light cotton clothes, lukewarm sponge, continue breastfeeding. Paracetamol only per pediatrician weight dose. Never give Aspirin.\n- Red Flags: Fever >102°F, lasting >48 hrs, high pitched continuous crying >3 hrs -> consult doctor immediately.\n- Missed Doses: Never restart whole course, continue from where left off. Min 4 weeks between Pentavalent doses.",
+        "options": {}
+      },
+      "id": "node-document-loader",
+      "name": "Default Document Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [780, 920]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": {{ JSON.stringify($json.output || $json.text || $json.response || 'Please consult your pediatrician for clinical advice.') }},\n  \"rag_verified\": true,\n  \"source\": \"NIS 2025 Guidelines\",\n  \"suggestions\": [\n    \"What if baby gets fever after vaccine?\",\n    \"What is Pentavalent vaccine?\",\n    \"How to relieve injection site swelling?\"\n  ]\n}",
+        "options": {}
+      },
+      "id": "node-respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [820, 300]
+    }
+  ],
+  "connections": {
+    "VaxBot Webhook": {
+      "main": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NIS 2025 Guidelines Retriever": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In-Memory Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "NIS 2025 Guidelines Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "In-Memory Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Document Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "In-Memory Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

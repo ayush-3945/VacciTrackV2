@@ -334,6 +334,36 @@ An **ABHA ID** (Ayushman Bharat Health Account) is a 14-digit digital health ide
  * Match user query against the clinical knowledge engine
  */
 export const queryVaxbot = async (userMessage, context = {}) => {
+  // If n8n RAG Webhook is configured, route query to n8n RAG pipeline first
+  const n8nWebhook = process.env.N8N_RAG_WEBHOOK_URL;
+  if (n8nWebhook && userMessage) {
+    try {
+      const response = await fetch(n8nWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage, query: userMessage, context }),
+      });
+      if (response.ok) {
+        const n8nData = await response.json();
+        const replyText = n8nData.reply || n8nData.output || n8nData.text;
+        if (replyText) {
+          return {
+            reply: replyText,
+            suggestions: n8nData.suggestions || [
+              'Fever after vaccine?',
+              'NIS 2025 schedule',
+              'Download Certificate',
+            ],
+            rag_verified: true,
+            source: 'n8n RAG Workflow',
+          };
+        }
+      }
+    } catch (n8nErr) {
+      console.warn('n8n RAG Webhook unavailable, using built-in NIS 2025 knowledge engine:', n8nErr.message);
+    }
+  }
+
   const cleanQuery = (userMessage || '').toLowerCase().trim();
   const isHinglish = isHinglishQuery(cleanQuery, context);
 
