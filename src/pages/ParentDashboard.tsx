@@ -299,9 +299,10 @@ const ParentDashboard: React.FC = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-teal-500/20">
       {/* Ambient Glowing Gradients & Dot Grid Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.08] dark:opacity-[0.14]" />
-        <div className="absolute -top-32 left-1/3 w-[600px] h-[350px] bg-gradient-to-b from-teal-500/15 via-emerald-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -right-48 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-emerald-500/15 via-teal-500/15 to-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 left-10 w-[450px] h-[350px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 right-10 w-[450px] h-[350px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.07] dark:opacity-[0.14]" />
       </div>
 
       <Navbar />
@@ -356,7 +357,7 @@ const ParentDashboard: React.FC = () => {
           <StatsCard
             title={t('pendingVaccines')}
             value={totalStats.pending}
-            subtitle="Due within 7 days"
+            subtitle={totalStats.pending > 0 ? `${t('dueWithin')} 7 ${t('daysRemaining')}` : undefined}
             icon={Clock}
             variant="warning"
             delay={0.08}
@@ -390,16 +391,18 @@ const ParentDashboard: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
                 className={cn(
-                  "p-5 sm:p-6 rounded-3xl border backdrop-blur-xl transition-all shadow-md relative overflow-hidden flex flex-col justify-between group",
+                  "p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 shadow-lg hover:shadow-2xl backdrop-blur-xl transition-all relative overflow-hidden flex flex-col justify-between group",
                   isOverdue
-                    ? "bg-gradient-to-br from-rose-500/15 via-card/90 to-card border-rose-500/35 hover:border-rose-500/60 hover:shadow-rose-500/10"
-                    : "bg-gradient-to-br from-amber-500/15 via-card/90 to-card border-amber-500/35 hover:border-amber-500/60 hover:shadow-amber-500/10"
+                    ? "hover:border-rose-500/50 hover:shadow-rose-500/10"
+                    : "hover:border-amber-500/50 hover:shadow-amber-500/10"
                 )}
               >
-                {/* Soft Ambient Glow */}
+                {/* Top glowing hairline */}
                 <div className={cn(
-                  "absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-40",
-                  isOverdue ? "bg-rose-500/25" : "bg-amber-500/25"
+                  "absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r opacity-70 group-hover:opacity-100 transition-opacity",
+                  isOverdue 
+                    ? "from-rose-500 via-red-400 to-rose-400"
+                    : "from-amber-500 via-orange-400 to-amber-400"
                 )} />
 
                 <div>
@@ -428,24 +431,24 @@ const ParentDashboard: React.FC = () => {
                     <span className={cn(
                       "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold border shadow-2xs",
                       isOverdue
-                        ? "bg-rose-500 text-white border-rose-600"
+                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
                         : isDueToday
-                          ? "bg-amber-500 text-white border-amber-600"
-                          : "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40"
+                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
                     )}>
                       {isOverdue ? (
                         <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-white shrink-0" />
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                           <span>{Math.abs(daysDiff)} {t('overdueDays')}</span>
                         </>
                       ) : isDueToday ? (
                         <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500 animate-pulse shrink-0" />
                           <span>Due Today!</span>
                         </>
                       ) : (
                         <>
-                          <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300 shrink-0" />
+                          <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                           <span>{daysDiff} {t('daysRemaining')}</span>
                         </>
                       )}
@@ -454,12 +457,12 @@ const ParentDashboard: React.FC = () => {
 
                   <div className="flex items-start gap-3.5 mb-4">
                     <div className={cn(
-                      "w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md",
+                      "w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110 shadow-2xs",
                       isOverdue
-                        ? "bg-rose-500 text-white shadow-rose-500/20"
-                        : "bg-amber-500 text-white shadow-amber-500/20"
+                        ? "bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                        : "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400"
                     )}>
-                      {isOverdue ? <AlertTriangle className="w-5 h-5 animate-pulse" /> : <Clock className="w-5 h-5" />}
+                      {isOverdue ? <AlertTriangle className="w-6 h-6 animate-pulse" /> : <Clock className="w-6 h-6" />}
                     </div>
 
                     <div className="min-w-0">
@@ -473,11 +476,11 @@ const ParentDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-border/60 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">National Immunization Schedule</span>
+                <div className="pt-3.5 border-t border-border/60 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground font-medium">National Immunization Schedule</span>
                   <button
                     onClick={() => navigate(`/child/${nextVaccine.child.id || nextVaccine.child._id}`)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
                   >
                     <span>View Schedule</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -486,10 +489,10 @@ const ParentDashboard: React.FC = () => {
               </motion.div>
             );
           })() : (
-            <div className="p-5 sm:p-6 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-card/90 to-card backdrop-blur-xl flex flex-col justify-between">
+            <div className="p-5 sm:p-7 rounded-3xl border border-emerald-500/30 bg-card/85 backdrop-blur-xl flex flex-col justify-between shadow-lg">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md">
-                  <CheckCircle className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
+                  <CheckCircle className="w-6 h-6" />
                 </div>
                 <div>
                   <h4 className="font-bold text-base text-foreground font-display">All Vaccinations Up-to-Date!</h4>
@@ -500,25 +503,25 @@ const ParentDashboard: React.FC = () => {
           )}
 
           {/* Nearby Vaccination Centers Card */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-teal-500/15 via-card/90 to-card border border-teal-500/35 hover:border-teal-500/60 hover:shadow-teal-500/10 transition-all backdrop-blur-xl flex flex-col justify-between shadow-md relative overflow-hidden group">
-            {/* Soft Ambient Glow */}
-            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
+          <div className="p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-cyan-500/50 shadow-lg hover:shadow-2xl hover:shadow-cyan-500/10 transition-all backdrop-blur-xl flex flex-col justify-between relative overflow-hidden group">
+            {/* Top glowing hairline */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 via-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
 
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white uppercase tracking-wider flex items-center gap-1 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
                   Live GPS Locator
                 </span>
-                <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400">11+ Verified Centers</span>
+                <span className="text-[11px] font-semibold text-cyan-600 dark:text-cyan-400">11+ Verified Centers</span>
               </div>
 
               <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-cyan-600 text-white flex items-center justify-center shadow-md shadow-teal-500/20 flex-shrink-0">
-                  <MapPin className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-2xs flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <MapPin className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display">
+                  <h4 className="font-bold text-base sm:text-lg text-foreground font-display group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                     Find Government PHCs & Clinics
                   </h4>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed">
@@ -528,11 +531,11 @@ const ParentDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-border/60 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Nearby & State Registry</span>
+            <div className="pt-3.5 border-t border-border/60 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Nearby & State Registry</span>
               <button
                 onClick={() => navigate('/centers')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-md hover:shadow-teal-500/25 transition-all whitespace-nowrap active:scale-[0.98]"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Explore Centers Map</span>
