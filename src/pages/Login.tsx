@@ -79,37 +79,54 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    const isDoctor = selectedPortal === 'doctor';
+
     try {
       const response = await authAPI.register({
         name: regName,
         email: regEmail,
         password: regPassword,
-        role: 'doctor',
+        role: isDoctor ? 'doctor' : 'parent',
         phone: regPhone || undefined,
-        hospitalName: regHospital || undefined,
-        specialization: regSpecialization || undefined,
+        hospitalName: isDoctor ? (regHospital || undefined) : undefined,
+        specialization: isDoctor ? (regSpecialization || undefined) : undefined,
       });
 
       if (response.success) {
-        const doctorId = response.data?.user?.doctorId;
-        if (doctorId) {
-          setRegisteredDoctorId(doctorId);
-        }
+        if (isDoctor) {
+          const doctorId = response.data?.user?.doctorId;
+          if (doctorId) {
+            setRegisteredDoctorId(doctorId);
+          }
 
-        toast.success('Registration successful!', {
-          description: `Your Doctor ID is: ${doctorId || 'Generated'}`,
-          duration: 8000,
-        });
+          toast.success(language === 'hi' ? 'डॉक्टर पंजीकरण सफल!' : 'Doctor registration successful!', {
+            description: `Your Doctor ID is: ${doctorId || 'Generated'}`,
+            duration: 8000,
+          });
 
-        // Auto-login after registration
-        const loginResult = await login(regEmail, regPassword);
-        if (loginResult.success) {
-          setTimeout(() => navigate('/doctor'), 1500);
+          // Auto-login after registration
+          const loginResult = await login(regEmail, regPassword);
+          if (loginResult.success) {
+            setTimeout(() => navigate('/doctor'), 1500);
+          }
+        } else {
+          toast.success(language === 'hi' ? 'पैरेंट पंजीकरण सफल!' : 'Parent registration successful!', {
+            description: language === 'hi' 
+              ? `स्वागत है ${regName}! आपका पैरेंट खाता सक्रिय हो गया है।` 
+              : `Welcome ${regName}! Your family immunization account is ready.`,
+            duration: 4000,
+          });
+
+          // Auto-login after registration
+          const loginResult = await login(regEmail, regPassword);
+          if (loginResult.success) {
+            setTimeout(() => navigate('/parent'), 1200);
+          }
         }
       }
     } catch (error: any) {
-      toast.error('Registration failed', {
-        description: error.message || 'An error occurred',
+      toast.error(language === 'hi' ? 'पंजीकरण विफल' : 'Registration failed', {
+        description: error.message || 'An error occurred during registration',
       });
     }
 
@@ -370,10 +387,12 @@ const Login: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs ${
-                    selectedPortal === 'doctor' ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                    selectedPortal === 'doctor' 
+                      ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30' 
+                      : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                   }`}>
                     {formMode === 'register' ? (
-                      <UserPlus className="w-6 h-6" />
+                      selectedPortal === 'doctor' ? <UserPlus className="w-6 h-6" /> : <Users className="w-6 h-6" />
                     ) : selectedPortal === 'doctor' ? (
                       <Stethoscope className="w-6 h-6" />
                     ) : (
@@ -383,14 +402,18 @@ const Login: React.FC = () => {
                   <div>
                     <h3 className="font-bold text-lg text-foreground">
                       {formMode === 'register'
-                        ? 'Register as Doctor'
+                        ? selectedPortal === 'doctor'
+                          ? (language === 'hi' ? 'डॉक्टर पंजीकरण' : 'Register as Doctor')
+                          : (language === 'hi' ? 'माता-पिता पंजीकरण' : 'Register as Parent')
                         : selectedPortal === 'doctor'
                           ? t('doctorPortal')
                           : t('parentPortal')}
                     </h3>
                     <p className="text-xs text-muted-foreground">
                       {formMode === 'register'
-                        ? 'Create your healthcare provider account'
+                        ? selectedPortal === 'doctor'
+                          ? (language === 'hi' ? 'स्वास्थ्य सेवा प्रदाता खाता बनाएं' : 'Create your healthcare provider account')
+                          : (language === 'hi' ? 'अपने परिवार का डिजिटल टीकाकरण खाता बनाएं' : 'Create your family immunization account')
                         : t('enterCredentials')}
                     </p>
                   </div>
@@ -440,7 +463,11 @@ const Login: React.FC = () => {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full btn-medical flex items-center justify-center gap-2"
+                        className={`w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-lg flex items-center justify-center gap-2 transition-all ${
+                          selectedPortal === 'doctor'
+                            ? 'bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-700 hover:to-teal-700 shadow-cyan-500/25 border border-cyan-400/30'
+                            : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25 border border-emerald-400/30'
+                        }`}
                       >
                         {isLoading ? (
                           <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -469,16 +496,36 @@ const Login: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Register CTA - only for doctors */}
+                    {/* Register CTA for Doctors */}
                     {selectedPortal === 'doctor' && (
                       <div className="mt-4 pt-4 border-t border-border text-center">
-                        <p className="text-sm text-muted-foreground mb-2">New healthcare provider?</p>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {language === 'hi' ? 'नए डॉक्टर या स्वास्थ्य कर्मी?' : 'New healthcare provider?'}
+                        </p>
                         <button
+                          type="button"
                           onClick={() => setFormMode('register')}
-                          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 transition-colors"
                         >
                           <UserPlus className="w-4 h-4" />
-                          Register as Doctor
+                          {language === 'hi' ? 'डॉक्टर के रूप में रजिस्टर करें' : 'Register as Doctor'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Register CTA for Parents */}
+                    {selectedPortal === 'parent' && (
+                      <div className="mt-4 pt-4 border-t border-border text-center">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {language === 'hi' ? 'नए माता-पिता या अभिभावक हैं?' : 'New parent or guardian?'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setFormMode('register')}
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          {language === 'hi' ? 'माता-पिता के रूप में रजिस्टर करें' : 'Register as Parent'}
                         </button>
                       </div>
                     )}
@@ -513,13 +560,17 @@ const Login: React.FC = () => {
                       <form onSubmit={handleRegister} className="space-y-3">
                         {/* Name */}
                         <div>
-                          <label className="block text-xs font-medium text-muted-foreground mb-1">Full Name *</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1">
+                            {selectedPortal === 'doctor'
+                              ? 'Doctor Full Name *'
+                              : 'Parent / Guardian Full Name *'}
+                          </label>
                           <input
                             type="text"
                             value={regName}
                             onChange={(e) => setRegName(e.target.value)}
                             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                            placeholder="Dr. Jane Smith"
+                            placeholder={selectedPortal === 'doctor' ? 'Dr. Jane Smith' : 'Ananya Sharma'}
                             required
                           />
                         </div>
@@ -534,7 +585,7 @@ const Login: React.FC = () => {
                               value={regEmail}
                               onChange={(e) => setRegEmail(e.target.value)}
                               className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                              placeholder="doctor@hospital.com"
+                              placeholder={selectedPortal === 'doctor' ? 'doctor@hospital.com' : 'parent@gmail.com'}
                               required
                             />
                           </div>
@@ -564,10 +615,43 @@ const Login: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Phone + Hospital row */}
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Phone Number */}
+                        {selectedPortal === 'doctor' ? (
+                          /* Doctor: Phone + Hospital row */
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <input
+                                  type="tel"
+                                  value={regPhone}
+                                  onChange={(e) => setRegPhone(e.target.value)}
+                                  className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                                  placeholder="9876543210"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-muted-foreground mb-1">Hospital</label>
+                              <div className="relative">
+                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <input
+                                  type="text"
+                                  value={regHospital}
+                                  onChange={(e) => setRegHospital(e.target.value)}
+                                  className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                                  placeholder="AIIMS Delhi"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Parent: Phone Number (for WhatsApp/SMS & OTP reminders) */
                           <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">
+                              Mobile Number (for SMS & OTP Reminders)
+                            </label>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                               <input
@@ -579,51 +663,53 @@ const Login: React.FC = () => {
                               />
                             </div>
                           </div>
+                        )}
+
+                        {/* Specialization (Doctor only) */}
+                        {selectedPortal === 'doctor' && (
                           <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1">Hospital</label>
-                            <div className="relative">
-                              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                              <input
-                                type="text"
-                                value={regHospital}
-                                onChange={(e) => setRegHospital(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                                placeholder="AIIMS Delhi"
-                              />
-                            </div>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Specialization</label>
+                            <select
+                              value={regSpecialization}
+                              onChange={(e) => setRegSpecialization(e.target.value)}
+                              className="w-full px-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                            >
+                              <option value="">Select specialization</option>
+                              {specializations.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
                           </div>
-                        </div>
+                        )}
 
-                        {/* Specialization */}
-                        <div>
-                          <label className="block text-xs font-medium text-muted-foreground mb-1">Specialization</label>
-                          <select
-                            value={regSpecialization}
-                            onChange={(e) => setRegSpecialization(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                          >
-                            <option value="">Select specialization</option>
-                            {specializations.map((s) => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Submit */}
+                        {/* Submit Button */}
                         <button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full btn-medical flex items-center justify-center gap-2 mt-2"
+                          className={`w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-lg flex items-center justify-center gap-2 mt-4 transition-all ${
+                            selectedPortal === 'doctor'
+                              ? 'bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-700 hover:to-teal-700 shadow-cyan-500/25 border border-cyan-400/30'
+                              : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25 border border-emerald-400/30'
+                          }`}
                         >
                           {isLoading ? (
                             <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                           ) : (
                             <>
                               <UserPlus className="w-5 h-5" />
-                              Create Doctor Account
+                              {selectedPortal === 'doctor'
+                                ? (language === 'hi' ? 'डॉक्टर खाता बनाएं' : 'Create Doctor Account')
+                                : (language === 'hi' ? 'पैरेंट खाता बनाएं' : 'Create Parent Account')}
                             </>
                           )}
                         </button>
+
+                        {/* Trust highlight for parents */}
+                        {selectedPortal === 'parent' && (
+                          <p className="text-[11px] text-center text-muted-foreground/80 pt-1">
+                            ✨ Free registration • Instant QR Vaccine Certificate • 25+ Vaccines NIS 2025
+                          </p>
+                        )}
 
                         {/* Back to login */}
                         <div className="text-center pt-2">
@@ -632,7 +718,7 @@ const Login: React.FC = () => {
                             onClick={() => setFormMode('login')}
                             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Already have an account? <span className="text-primary">Login</span>
+                            Already have an account? <span className="text-primary font-semibold">Login</span>
                           </button>
                         </div>
                       </form>
