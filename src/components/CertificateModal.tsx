@@ -64,26 +64,28 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ isOpen, onClose, ch
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-border bg-card">
         {/* Certificate Card Header */}
-        <div className="bg-secondary/80 border-b border-border text-foreground p-6 relative overflow-hidden rounded-t-lg">
+        <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-700 text-white p-6 relative overflow-hidden rounded-t-lg">
+          <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-emerald-600 rounded-lg text-white">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-white/15 rounded-lg backdrop-blur-md">
+                <ShieldCheck className="w-6 h-6 text-emerald-200" />
               </div>
               <div>
-                <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Ministry of Health & Family Welfare</span>
-                <p className="text-xs text-muted-foreground/80">Universal Immunization Programme • NIS 2025</p>
+                <span className="text-xs uppercase tracking-wider font-semibold text-teal-100">Ministry of Health & Family Welfare</span>
+                <p className="text-xs text-teal-200">Universal Immunization Programme • NIS 2025</p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-medium text-emerald-400">
+            <span className="px-3 py-1 bg-emerald-500/25 border border-emerald-300/40 rounded-full text-xs font-semibold text-emerald-100 backdrop-blur-md">
               OTP Verified
             </span>
           </div>
 
-          <h2 className="text-xl font-bold font-display text-foreground tracking-tight">
+          <h2 className="text-2xl font-bold font-display text-white tracking-tight">
             Digital Certificate for Child Immunization
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-sm text-teal-100 mt-1">
             Government of India NIS-compliant verifiable medical record
           </p>
         </div>
@@ -195,7 +197,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({ isOpen, onClose, ch
               <Button
                 variant="default"
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5"
+                className="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5"
                 onClick={handleDownload}
                 disabled={isDownloading}
               >
