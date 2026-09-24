@@ -208,7 +208,7 @@ const Login: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-center py-8 sm:py-12 relative z-10 w-full">
+      <main className="flex-1 flex flex-col justify-center py-4 sm:py-6 relative z-10 w-full my-auto">
         <AnimatePresence mode="wait">
           {!selectedPortal ? (
             <motion.div
@@ -220,59 +220,59 @@ const Login: React.FC = () => {
               className="w-full flex-1 flex flex-col justify-center items-center px-4"
             >
               {/* Hero Header */}
-              <div className="text-center max-w-3xl mx-auto mb-10">
+              <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
                 {/* Glowing NIS 2025 Pill Badge */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4 }}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs mb-5 backdrop-blur-xs"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs mb-3.5 backdrop-blur-xs"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>🛡️ National Immunization Schedule (NIS) 2025 Compliant • ABHA Linked</span>
                 </motion.div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-display tracking-tight text-foreground mb-4">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-display tracking-tight text-foreground mb-2 sm:mb-3">
                   Vacci<span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 bg-clip-text text-transparent">Track</span>
                 </h1>
 
-                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                   Shield Your Child's Future — India's Digital Immunization Management Platform
                 </p>
               </div>
 
               {/* Side-by-Side Interactive Portal Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto w-full mb-2">
                 {/* Card 1: Parent & Guardian Portal */}
                 <motion.div
                   whileHover={{ y: -6 }}
                   whileTap={{ scale: 0.985 }}
                   transition={{ duration: 0.2 }}
                   onClick={() => setSelectedPortal('parent')}
-                  className="group relative p-6 sm:p-8 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-emerald-500/60 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 transition-all cursor-pointer flex flex-col justify-between overflow-hidden backdrop-blur-xl"
+                  className="group relative p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-emerald-500/60 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/10 transition-all cursor-pointer flex flex-col justify-between overflow-hidden backdrop-blur-xl"
                 >
                   {/* Top glowing gradient highlight */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 opacity-70 group-hover:opacity-100 transition-opacity" />
 
                   <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/25 transition-all shadow-xs">
-                        <Users className="w-7 h-7" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/25 transition-all shadow-xs">
+                        <Users className="w-6 h-6" />
                       </div>
                       <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                         For Families
                       </span>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       Parent & Guardian Portal
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-6 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5 leading-relaxed">
                       Track and safeguard your child's immunization journey with real-time digital protection.
                     </p>
 
                     {/* Feature Highlights */}
-                    <ul className="space-y-3 mb-6 text-xs sm:text-sm text-muted-foreground">
+                    <ul className="space-y-2.5 mb-5 text-xs sm:text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                         <span>Complete NIS 2025 Schedule (Birth to 16 Yrs)</span>
@@ -301,30 +301,30 @@ const Login: React.FC = () => {
                   whileTap={{ scale: 0.985 }}
                   transition={{ duration: 0.2 }}
                   onClick={() => setSelectedPortal('doctor')}
-                  className="group relative p-6 sm:p-8 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-cyan-500/60 shadow-lg hover:shadow-2xl hover:shadow-cyan-500/10 transition-all cursor-pointer flex flex-col justify-between overflow-hidden backdrop-blur-xl"
+                  className="group relative p-5 sm:p-7 rounded-3xl bg-card/85 hover:bg-card border border-border/80 hover:border-cyan-500/60 shadow-lg hover:shadow-2xl hover:shadow-cyan-500/10 transition-all cursor-pointer flex flex-col justify-between overflow-hidden backdrop-blur-xl"
                 >
                   {/* Top glowing gradient highlight */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 via-cyan-400 to-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
 
                   <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/25 transition-all shadow-xs">
-                        <Stethoscope className="w-7 h-7" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/25 transition-all shadow-xs">
+                        <Stethoscope className="w-6 h-6" />
                       </div>
                       <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                         For Clinicians
                       </span>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                       Doctor & Clinic Portal
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-6 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5 leading-relaxed">
                       Authorized pediatricians & government PHC staff verification and administration logs.
                     </p>
 
                     {/* Feature Highlights */}
-                    <ul className="space-y-3 mb-6 text-xs sm:text-sm text-muted-foreground">
+                    <ul className="space-y-2.5 mb-5 text-xs sm:text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-cyan-500 flex-shrink-0" />
                         <span>OTP-Verified Administration</span>
@@ -646,7 +646,7 @@ const Login: React.FC = () => {
       </main>
 
       {/* Bottom Trust & Compliance Strip */}
-      <footer className="relative z-20 pb-8 pt-4 px-4 border-t border-border/40 mt-auto">
+      <footer className="relative z-20 pb-4 pt-3 px-4 border-t border-border/40 mt-auto">
         <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs font-medium text-muted-foreground">
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-emerald-500/30 transition-colors">
             <span>🛡️</span>
