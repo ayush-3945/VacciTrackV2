@@ -62,13 +62,13 @@ const Login: React.FC = () => {
     const result = await login(email, password);
 
     if (result.success) {
-      toast.success('Welcome back!', {
-        description: 'You have successfully logged in.',
+      toast.success(language === 'hi' ? 'वापस स्वागत है!' : 'Welcome back!', {
+        description: language === 'hi' ? 'आप सफलतापूर्वक लॉगिन हो चुके हैं।' : 'You have successfully logged in.',
       });
       navigate(selectedPortal === 'doctor' ? '/doctor' : '/parent');
     } else {
-      toast.error('Login failed', {
-        description: result.error || 'Invalid credentials',
+      toast.error(language === 'hi' ? 'लॉगिन विफल' : 'Login failed', {
+        description: result.error || (language === 'hi' ? 'अमान्य ईमेल या पासवर्ड' : 'Invalid credentials'),
       });
     }
 
@@ -160,13 +160,13 @@ const Login: React.FC = () => {
   };
 
   const specializations = [
-    'Pediatrics',
-    'General Physician',
-    'Family Medicine',
-    'Neonatology',
-    'Immunology',
-    'Internal Medicine',
-    'Other',
+    { en: 'Pediatrics', hi: 'बाल रोग (Pediatrics)' },
+    { en: 'General Physician', hi: 'सामान्य चिकित्सक (General Physician)' },
+    { en: 'Family Medicine', hi: 'पारिवारिक चिकित्सा (Family Medicine)' },
+    { en: 'Neonatology', hi: 'नवजात शिशु रोग (Neonatology)' },
+    { en: 'Immunology', hi: 'इम्यूनोलॉजी (Immunology)' },
+    { en: 'Internal Medicine', hi: 'आंतरिक चिकित्सा (Internal Medicine)' },
+    { en: 'Other', hi: 'अन्य (Other)' },
   ];
 
   return (
@@ -207,7 +207,7 @@ const Login: React.FC = () => {
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-all shadow-xs"
             >
               <MapPin className="w-3.5 h-3.5 text-teal-600" />
-              <span>Find Centers</span>
+              <span>{language === 'hi' ? 'टीकाकरण केंद्र खोजें' : 'Find Centers'}</span>
             </button>
 
             <button
@@ -246,7 +246,11 @@ const Login: React.FC = () => {
                   className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs mb-3.5 backdrop-blur-xs"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>National Immunization Schedule (NIS) 2025 Compliant • ABHA Linked</span>
+                  <span>
+                    {language === 'hi' 
+                      ? 'राष्ट्रीय टीकाकरण कार्यक्रम (NIS 2025) प्रमाणित • आभा (ABHA) लिंक'
+                      : 'National Immunization Schedule (NIS) 2025 Compliant • ABHA Linked'}
+                  </span>
                 </motion.div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-display tracking-tight text-foreground mb-2 sm:mb-3">
@@ -254,7 +258,9 @@ const Login: React.FC = () => {
                 </h1>
 
                 <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                  Shield Your Child's Future — India's Digital Immunization Management Platform
+                  {language === 'hi'
+                    ? 'अपने बच्चे के सुरक्षित भविष्य की ढाल — भारत का डिजिटल टीकाकरण प्रबंधन मंच'
+                    : "Shield Your Child's Future — India's Digital Immunization Management Platform"}
                 </p>
               </div>
 
@@ -277,37 +283,39 @@ const Login: React.FC = () => {
                         <Users className="w-6 h-6" />
                       </div>
                       <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                        For Families
+                        {language === 'hi' ? 'परिवारों के लिए' : 'For Families'}
                       </span>
                     </div>
 
                     <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      Parent & Guardian Portal
+                      {language === 'hi' ? 'माता-पिता व अभिभावक पोर्टल' : 'Parent & Guardian Portal'}
                     </h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5 leading-relaxed">
-                      Track and safeguard your child's immunization journey with real-time digital protection.
+                      {language === 'hi'
+                        ? 'अपने बच्चे की टीकाकरण यात्रा को ट्रैक करें और रीयल-टाइम डिजिटल सुरक्षा पाएं।'
+                        : "Track and safeguard your child's immunization journey with real-time digital protection."}
                     </p>
 
                     {/* Feature Highlights */}
                     <ul className="space-y-2.5 mb-5 text-xs sm:text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <span>Complete NIS 2025 Schedule (Birth to 16 Yrs)</span>
+                        <span>{language === 'hi' ? 'संपूर्ण NIS 2025 शेड्यूल (जन्म से 16 वर्ष)' : 'Complete NIS 2025 Schedule (Birth to 16 Yrs)'}</span>
                       </li>
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <span>Instant QR Vaccine Certificate</span>
+                        <span>{language === 'hi' ? 'त्वरित क्यूआर (QR) डिजिटल प्रमाण पत्र' : 'Instant QR Vaccine Certificate'}</span>
                       </li>
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <span>24/7 AI Pediatric Guidance</span>
+                        <span>{language === 'hi' ? '24/7 एआई बाल रोग मार्गदर्शन (VaxBot)' : '24/7 AI Pediatric Guidance'}</span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="pt-4 border-t border-border/60 flex items-center justify-between text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
                     <span className="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1.5">
-                      Enter Parent Portal →
+                      {language === 'hi' ? 'पैरेंट पोर्टल में प्रवेश करें →' : 'Enter Parent Portal →'}
                     </span>
                   </div>
                 </motion.div>
@@ -329,37 +337,39 @@ const Login: React.FC = () => {
                         <Stethoscope className="w-6 h-6" />
                       </div>
                       <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
-                        For Clinicians
+                        {language === 'hi' ? 'स्वास्थ्य कर्मियों के लिए' : 'For Clinicians'}
                       </span>
                     </div>
 
                     <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1.5 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                      Doctor & Clinic Portal
+                      {language === 'hi' ? 'डॉक्टर व क्लिनिक पोर्टल' : 'Doctor & Clinic Portal'}
                     </h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5 leading-relaxed">
-                      Authorized pediatricians & government PHC staff verification and administration logs.
+                      {language === 'hi'
+                        ? 'अधिकृत बाल रोग विशेषज्ञ एवं सरकारी पीएचसी स्टाफ सत्यापन व टीकाकरण रिकॉर्ड।'
+                        : 'Authorized pediatricians & government PHC staff verification and administration logs.'}
                     </p>
 
                     {/* Feature Highlights */}
                     <ul className="space-y-2.5 mb-5 text-xs sm:text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-                        <span>OTP-Verified Administration</span>
+                        <span>{language === 'hi' ? 'ओटीपी (OTP) सत्यापित सुरक्षित टीकाकरण' : 'OTP-Verified Administration'}</span>
                       </li>
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-                        <span>14-Digit ABHA ID Lookup</span>
+                        <span>{language === 'hi' ? '14-अंकीय आभा (ABHA) आईडी सत्यापन' : '14-Digit ABHA ID Lookup'}</span>
                       </li>
                       <li className="flex items-center gap-2.5">
                         <CheckCircle2 className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-                        <span>Real-Time Cohort & Clinic Logs</span>
+                        <span>{language === 'hi' ? 'रीयल-टाइम क्लिनिक एवं मरीज रिकॉर्ड' : 'Real-Time Cohort & Clinic Logs'}</span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="pt-4 border-t border-border/60 flex items-center justify-between text-xs sm:text-sm font-bold text-cyan-600 dark:text-cyan-400">
                     <span className="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1.5">
-                      Enter Doctor Portal →
+                      {language === 'hi' ? 'डॉक्टर पोर्टल में प्रवेश करें →' : 'Enter Doctor Portal →'}
                     </span>
                   </div>
                 </motion.div>
@@ -381,7 +391,7 @@ const Login: React.FC = () => {
                   className="text-xs font-semibold text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1.5 transition-colors group"
                 >
                   <ArrowRight className="w-3.5 h-3.5 rotate-180 group-hover:-translate-x-0.5 transition-transform" />
-                  Back to portal selection
+                  {language === 'hi' ? 'पोर्टल चयन पर वापस जाएं' : 'Back to portal selection'}
                 </button>
 
                 {/* Header */}
@@ -406,15 +416,15 @@ const Login: React.FC = () => {
                           ? (language === 'hi' ? 'डॉक्टर पंजीकरण' : 'Register as Doctor')
                           : (language === 'hi' ? 'माता-पिता पंजीकरण' : 'Register as Parent')
                         : selectedPortal === 'doctor'
-                          ? t('doctorPortal')
-                          : t('parentPortal')}
+                          ? (language === 'hi' ? 'डॉक्टर व क्लिनिक पोर्टल' : 'Doctor & Clinic Portal')
+                          : (language === 'hi' ? 'माता-पिता व अभिभावक पोर्टल' : 'Parent & Guardian Portal')}
                     </h3>
                     <p className="text-xs text-muted-foreground">
                       {formMode === 'register'
                         ? selectedPortal === 'doctor'
                           ? (language === 'hi' ? 'स्वास्थ्य सेवा प्रदाता खाता बनाएं' : 'Create your healthcare provider account')
                           : (language === 'hi' ? 'अपने परिवार का डिजिटल टीकाकरण खाता बनाएं' : 'Create your family immunization account')
-                        : t('enterCredentials')}
+                        : (language === 'hi' ? 'आगे बढ़ने के लिए अपना विवरण दर्ज करें' : 'Enter your credentials to continue')}
                     </p>
                   </div>
                 </div>
@@ -425,21 +435,21 @@ const Login: React.FC = () => {
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          {t('email')}
+                          {language === 'hi' ? 'ईमेल पता' : 'Email Address'}
                         </label>
                         <input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                          placeholder="Enter your email"
+                          placeholder={language === 'hi' ? 'अपना ईमेल दर्ज करें' : 'Enter your email'}
                           required
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          {t('password')}
+                          {language === 'hi' ? 'पासवर्ड' : 'Password'}
                         </label>
                         <div className="relative">
                           <input
@@ -447,7 +457,7 @@ const Login: React.FC = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 pr-12 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                            placeholder="Enter your password"
+                            placeholder={language === 'hi' ? 'अपना पासवर्ड दर्ज करें' : 'Enter your password'}
                             required
                           />
                           <button
@@ -473,7 +483,7 @@ const Login: React.FC = () => {
                           <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                         ) : (
                           <>
-                            {t('login')}
+                            {language === 'hi' ? 'लॉगिन करें' : 'Login'}
                             <ArrowRight className="w-5 h-5" />
                           </>
                         )}
@@ -482,17 +492,19 @@ const Login: React.FC = () => {
 
                     {/* Demo Credentials */}
                     <div className="mt-6 p-4 rounded-lg bg-muted/50">
-                      <p className="text-xs text-muted-foreground mb-2">Demo Credentials:</p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {language === 'hi' ? 'डेमो लॉगिन विवरण:' : 'Demo Credentials:'}
+                      </p>
                       <div className="text-sm font-mono text-foreground">
-                        <p>Email: {demoCredentials[selectedPortal].email}</p>
-                        <p>Password: {demoCredentials[selectedPortal].password}</p>
+                        <p>{language === 'hi' ? 'ईमेल:' : 'Email:'} {demoCredentials[selectedPortal].email}</p>
+                        <p>{language === 'hi' ? 'पासवर्ड:' : 'Password:'} {demoCredentials[selectedPortal].password}</p>
                       </div>
                       <button
                         type="button"
                         onClick={fillDemoCredentials}
-                        className="mt-2 text-xs text-primary hover:underline"
+                        className="mt-2 text-xs text-primary hover:underline font-medium"
                       >
-                        Click to fill demo credentials
+                        {language === 'hi' ? 'डेमो विवरण स्वतः भरें (क्लिक करें)' : 'Click to fill demo credentials'}
                       </button>
                     </div>
 
@@ -500,7 +512,7 @@ const Login: React.FC = () => {
                     {selectedPortal === 'doctor' && (
                       <div className="mt-4 pt-4 border-t border-border text-center">
                         <p className="text-sm text-muted-foreground mb-2">
-                          {language === 'hi' ? 'नए डॉक्टर या स्वास्थ्य कर्मी?' : 'New healthcare provider?'}
+                          {language === 'hi' ? 'नए डॉक्टर या स्वास्थ्य कर्मी हैं?' : 'New healthcare provider?'}
                         </p>
                         <button
                           type="button"
@@ -546,14 +558,19 @@ const Login: React.FC = () => {
                           <BadgeCheck className="w-8 h-8 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground mb-1">Your unique Doctor ID:</p>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            {language === 'hi' ? 'आपकी विशिष्ट डॉक्टर आईडी:' : 'Your unique Doctor ID:'}
+                          </p>
                           <p className="font-mono text-3xl font-bold tracking-wider text-primary">
                             {registeredDoctorId}
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Share this ID with patients so they can assign you as their doctor.
-                          <br />Redirecting to dashboard...
+                          {language === 'hi' 
+                            ? 'यह आईडी मरीजों के साथ साझा करें ताकि वे आपको अपने डॉक्टर के रूप में जोड़ सकें।' 
+                            : 'Share this ID with patients so they can assign you as their doctor.'}
+                          <br />
+                          {language === 'hi' ? 'डैशबोर्ड पर पुनर्निर्देशित किया जा रहा है...' : 'Redirecting to dashboard...'}
                         </p>
                       </motion.div>
                     ) : (
@@ -562,22 +579,24 @@ const Login: React.FC = () => {
                         <div>
                           <label className="block text-xs font-medium text-muted-foreground mb-1">
                             {selectedPortal === 'doctor'
-                              ? 'Doctor Full Name *'
-                              : 'Parent / Guardian Full Name *'}
+                              ? (language === 'hi' ? 'डॉक्टर का पूरा नाम *' : 'Doctor Full Name *')
+                              : (language === 'hi' ? 'माता-पिता / अभिभावक का नाम *' : 'Parent / Guardian Full Name *')}
                           </label>
                           <input
                             type="text"
                             value={regName}
                             onChange={(e) => setRegName(e.target.value)}
                             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                            placeholder={selectedPortal === 'doctor' ? 'Dr. Jane Smith' : 'Ananya Sharma'}
+                            placeholder={selectedPortal === 'doctor' ? (language === 'hi' ? 'डॉ. राहुल शर्मा' : 'Dr. Jane Smith') : (language === 'hi' ? 'अनन्या शर्मा' : 'Ananya Sharma')}
                             required
                           />
                         </div>
 
                         {/* Email */}
                         <div>
-                          <label className="block text-xs font-medium text-muted-foreground mb-1">Email *</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1">
+                            {language === 'hi' ? 'ईमेल पता *' : 'Email *'}
+                          </label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
@@ -593,7 +612,9 @@ const Login: React.FC = () => {
 
                         {/* Password */}
                         <div>
-                          <label className="block text-xs font-medium text-muted-foreground mb-1">Password *</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1">
+                            {language === 'hi' ? 'पासवर्ड *' : 'Password *'}
+                          </label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
@@ -601,7 +622,7 @@ const Login: React.FC = () => {
                               value={regPassword}
                               onChange={(e) => setRegPassword(e.target.value)}
                               className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                              placeholder="Min. 6 characters"
+                              placeholder={language === 'hi' ? 'न्यूनतम 6 अक्षर' : 'Min. 6 characters'}
                               minLength={6}
                               required
                             />
@@ -620,7 +641,9 @@ const Login: React.FC = () => {
                           /* Doctor: Phone + Hospital row */
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                                {language === 'hi' ? 'फ़ोन नंबर' : 'Phone'}
+                              </label>
                               <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <input
@@ -633,7 +656,9 @@ const Login: React.FC = () => {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-muted-foreground mb-1">Hospital</label>
+                              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                                {language === 'hi' ? 'अस्पताल / PHC' : 'Hospital'}
+                              </label>
                               <div className="relative">
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <input
@@ -641,7 +666,7 @@ const Login: React.FC = () => {
                                   value={regHospital}
                                   onChange={(e) => setRegHospital(e.target.value)}
                                   className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                                  placeholder="AIIMS Delhi"
+                                  placeholder={language === 'hi' ? 'एम्स दिल्ली / PHC' : 'AIIMS Delhi'}
                                 />
                               </div>
                             </div>
@@ -650,7 +675,9 @@ const Login: React.FC = () => {
                           /* Parent: Phone Number (for WhatsApp/SMS & OTP reminders) */
                           <div>
                             <label className="block text-xs font-medium text-muted-foreground mb-1">
-                              Mobile Number (for SMS & OTP Reminders)
+                              {language === 'hi' 
+                                ? 'मोबाइल नंबर (SMS और OTP रिमाइंडर के लिए)' 
+                                : 'Mobile Number (for SMS & OTP Reminders)'}
                             </label>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -668,15 +695,19 @@ const Login: React.FC = () => {
                         {/* Specialization (Doctor only) */}
                         {selectedPortal === 'doctor' && (
                           <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-1">Specialization</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">
+                              {language === 'hi' ? 'विशेषज्ञता (स्पेशलाइजेशन)' : 'Specialization'}
+                            </label>
                             <select
                               value={regSpecialization}
                               onChange={(e) => setRegSpecialization(e.target.value)}
                               className="w-full px-3 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
                             >
-                              <option value="">Select specialization</option>
+                              <option value="">{language === 'hi' ? 'विशेषज्ञता चुनें' : 'Select specialization'}</option>
                               {specializations.map((s) => (
-                                <option key={s} value={s}>{s}</option>
+                                <option key={s.en} value={s.en}>
+                                  {language === 'hi' ? s.hi : s.en}
+                                </option>
                               ))}
                             </select>
                           </div>
@@ -707,7 +738,9 @@ const Login: React.FC = () => {
                         {/* Trust highlight for parents */}
                         {selectedPortal === 'parent' && (
                           <p className="text-[11px] text-center text-muted-foreground/80 pt-1">
-                            ✨ Free registration • Instant QR Vaccine Certificate • 25+ Vaccines NIS 2025
+                            {language === 'hi' 
+                              ? '✨ निःशुल्क पंजीकरण • त्वरित क्यूआर प्रमाण पत्र • 25+ NIS टीके' 
+                              : '✨ Free registration • Instant QR Vaccine Certificate • 25+ Vaccines NIS 2025'}
                           </p>
                         )}
 
@@ -718,7 +751,10 @@ const Login: React.FC = () => {
                             onClick={() => setFormMode('login')}
                             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Already have an account? <span className="text-primary font-semibold">Login</span>
+                            {language === 'hi' ? 'पहले से खाता है? ' : 'Already have an account? '}
+                            <span className="text-primary font-semibold">
+                              {language === 'hi' ? 'लॉगिन करें' : 'Login'}
+                            </span>
                           </button>
                         </div>
                       </form>
@@ -736,19 +772,19 @@ const Login: React.FC = () => {
         <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs font-medium text-muted-foreground">
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-emerald-500/30 transition-colors">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>25+ NIS Vaccines</span>
+            <span>{language === 'hi' ? '25+ NIS राष्ट्रीय टीके' : '25+ NIS Vaccines'}</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-teal-500/30 transition-colors">
             <Lock className="w-3.5 h-3.5 text-teal-500" />
-            <span>OTP Verified</span>
+            <span>{language === 'hi' ? 'OTP सत्यापित सुरक्षा' : 'OTP Verified'}</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-cyan-500/30 transition-colors">
             <BadgeCheck className="w-3.5 h-3.5 text-cyan-500" />
-            <span>ABHA Integrated</span>
+            <span>{language === 'hi' ? 'आभा (ABHA) एकीकृत' : 'ABHA Integrated'}</span>
           </div>
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 backdrop-blur-xs shadow-2xs hover:border-blue-500/30 transition-colors">
             <Globe className="w-3.5 h-3.5 text-blue-500" />
-            <span>English & हिन्दी</span>
+            <span>{language === 'hi' ? 'हिंदी एवं English' : 'English & हिन्दी'}</span>
           </div>
         </div>
       </footer>
