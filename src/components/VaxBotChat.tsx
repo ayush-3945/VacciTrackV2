@@ -5,6 +5,7 @@ import { Bot, X, Send, ShieldCheck, HelpCircle, Volume2, VolumeX, RotateCcw, Fil
 import { Button } from '@/components/ui/button';
 import { chatAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface ChatMessage {
@@ -16,17 +17,19 @@ interface ChatMessage {
   actionType?: 'certificate' | 'schedule';
 }
 
-export const ENGLISH_QUESTIONS = [
-  "What to do if baby gets fever after vaccine?",
-  "What if no BCG scar has formed after 12 weeks?",
-  "Can I bathe my baby immediately after vaccination?",
-  "What if we missed a scheduled vaccine dose?",
-  "What is Pentavalent vaccine and why is it given?",
-  "How to download official QR-verified certificate?",
-  "What is the difference between OPV and IPV polio vaccines?",
-  "How to relieve injection site swelling and pain?",
-  "What is ABHA ID and why is it needed?",
-  "Overview of India's NIS 2025 vaccine schedule",
+export type PromptLanguage = 'hindi' | 'hinglish' | 'english';
+
+export const HINDI_QUESTIONS = [
+  "टीकाकरण के बाद बच्चे को बुखार आ गया, क्या घरेलू उपाय करें?",
+  "12 सप्ताह बाद भी बीसीजी का निशान नहीं बना, क्या दोबारा टीका लगेगा?",
+  "टीका लगने के तुरंत बाद बच्चे को नहलाना सुरक्षित है क्या?",
+  "अगर निर्धारित खुराक की तारीख निकल गई या टीका छूट गया तो क्या करें?",
+  "पेंटावेलेंट टीका बच्चे को किन 5 जानलेवा बीमारियों से बचाता है?",
+  "आधिकारिक क्यूआर कोड वाला टीकाकरण प्रमाणपत्र कैसे डाउनलोड करें?",
+  "पोलियो की दो बूंद (OPV) और सुई वाले टीके (fIPV) में क्या अंतर है?",
+  "टीका लगने वाली जगह पर सूजन और दर्द का सुरक्षित इलाज क्या है?",
+  "बच्चे का आभा (ABHA) कार्ड क्या होता है और इसके क्या फायदे हैं?",
+  "भारत सरकार के राष्ट्रीय टीकाकरण कार्यक्रम (NIS 2025) की पूरी जानकारी",
 ];
 
 export const HINGLISH_QUESTIONS = [
@@ -42,47 +45,77 @@ export const HINGLISH_QUESTIONS = [
   "India ke NIS 2025 schedule me kaun-kaun si vaccines hain?",
 ];
 
+export const ENGLISH_QUESTIONS = [
+  "What to do if baby gets fever after vaccine?",
+  "What if no BCG scar has formed after 12 weeks?",
+  "Can I bathe my baby immediately after vaccination?",
+  "What if we missed a scheduled vaccine dose?",
+  "What is Pentavalent vaccine and why is it given?",
+  "How to download official QR-verified certificate?",
+  "What is the difference between OPV and IPV polio vaccines?",
+  "How to relieve injection site swelling and pain?",
+  "What is ABHA ID and why is it needed?",
+  "Overview of India's NIS 2025 vaccine schedule",
+];
+
 const VaxBotChat: React.FC = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activePromptTab, setActivePromptTab] = useState<'hinglish' | 'english'>('hinglish');
+  const [activePromptTab, setActivePromptTab] = useState<PromptLanguage>(language === 'hi' ? 'hindi' : 'hinglish');
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
 
-  const getWelcomeText = (name?: string) =>
-    name
-      ? `Namaste ${name}! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAapke bache ke vaccine updates, fever care, missed doses, ya certificate ke bare me kuch bhi puchein!`
-      : `Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!`;
+  // Sync active prompt tab when global app language changes
+  useEffect(() => {
+    if (language === 'hi') {
+      setActivePromptTab('hindi');
+    }
+  }, [language]);
+
+  const getWelcomeText = (name?: string, lang: PromptLanguage = 'hindi') => {
+    if (lang === 'hindi') {
+      return name
+        ? `नमस्ते ${name}! 🙏 मैं **VaxBot** हूँ — आपका बाल रोग व राष्ट्रीय टीकाकरण कार्यक्रम (NIS 2025) एआई मार्गदर्शक।\n\nअपने बच्चे के टीके, बुखार की देखभाल, छूटी हुई खुराक, या डिजिटल प्रमाणपत्र से जुड़े किसी भी सवाल के लिए बेझिझक पूछें!`
+        : `नमस्ते! 🙏 मैं **VaxBot** हूँ — आपका बाल रोग व राष्ट्रीय टीकाकरण कार्यक्रम (NIS 2025) एआई मार्गदर्शक।\n\nआप मुझसे टीकों के साइड इफेक्ट्स, बुखार की देखभाल, छूटी हुई खुराक, या संपूर्ण टीकाकरण अनुसूची के बारे में शुद्ध हिंदी में पूछ सकते हैं!`;
+    }
+    if (lang === 'hinglish') {
+      return name
+        ? `Namaste ${name}! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAapke bache ke vaccine updates, fever care, missed doses, ya certificate ke bare me kuch bhi puchein!`
+        : `Namaste! 👋 Main **VaxBot** hoon — aapka AI Pediatric & NIS 2025 Vaccine Guide.\n\nAap mujhse vaccine ke side effects, fever care, missed doses, ya immunization schedule ke bare me English, Hindi ya Hinglish me puch sakte hain!`;
+    }
+    return name
+      ? `Hello ${name}! 👋 I am **VaxBot** — your AI Pediatric & NIS 2025 Vaccine Guide.\n\nFeel free to ask about your child's vaccination updates, fever care, missed doses, or digital certificates!`
+      : `Hello! 👋 I am **VaxBot** — your AI Pediatric & NIS 2025 Vaccine Guide.\n\nYou can ask me about vaccine side effects, fever management, missed doses, or the national immunization schedule!`;
+  };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'bot',
-      text: getWelcomeText(user?.name),
+      text: getWelcomeText(user?.name, language === 'hi' ? 'hindi' : 'hinglish'),
       timestamp: new Date(),
     },
   ]);
 
-  // Synchronize welcome message when user authentication loads
+  // Synchronize welcome message when user authentication or activePromptTab loads
   useEffect(() => {
-    if (user?.name) {
-      setMessages(prev => {
-        if (prev.length === 1 && prev[0].id === 'welcome') {
-          return [
-            {
-              id: 'welcome',
-              sender: 'bot',
-              text: getWelcomeText(user.name),
-              timestamp: prev[0].timestamp,
-            },
-          ];
-        }
-        return prev;
-      });
-    }
-  }, [user?.name]);
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [
+          {
+            id: 'welcome',
+            sender: 'bot',
+            text: getWelcomeText(user?.name, activePromptTab),
+            timestamp: prev[0].timestamp,
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [user?.name, activePromptTab]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -136,19 +169,20 @@ const VaxBotChat: React.FC = () => {
 
     window.speechSynthesis.cancel();
     const cleanText = text.replace(/[*_#`•\-]/g, '');
+    const isDevanagari = /[\u0900-\u097F]/.test(cleanText) || activePromptTab === 'hindi';
     const isHinglish = isHinglishText(cleanText) || activePromptTab === 'hinglish';
     const utterance = new SpeechSynthesisUtterance(cleanText);
 
     // Get all available system & browser voices
     const voices = window.speechSynthesis.getVoices();
 
-    if (isHinglish) {
+    if (isDevanagari || isHinglish) {
       utterance.lang = 'hi-IN';
       // Look for Hindi (hi-IN) voice first, or Indian English (en-IN)
       const indianVoice =
         voices.find(v => v.lang.toLowerCase() === 'hi-in' || v.lang.toLowerCase().startsWith('hi')) ||
-        voices.find(v => v.lang.toLowerCase() === 'en-in') ||
-        voices.find(v => v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('hemant') || v.name.toLowerCase().includes('india'));
+        voices.find(v => v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('swara') || v.name.toLowerCase().includes('hemant') || v.name.toLowerCase().includes('india')) ||
+        voices.find(v => v.lang.toLowerCase() === 'en-in');
 
       if (indianVoice) {
         utterance.voice = indianVoice;
@@ -183,7 +217,7 @@ const VaxBotChat: React.FC = () => {
       {
         id: 'welcome',
         sender: 'bot',
-        text: getWelcomeText(user?.name),
+        text: getWelcomeText(user?.name, activePromptTab),
         timestamp: new Date(),
       },
     ]);
@@ -191,10 +225,22 @@ const VaxBotChat: React.FC = () => {
 
   const detectAction = (text: string): 'certificate' | 'schedule' | undefined => {
     const lower = text.toLowerCase();
-    if (lower.includes('certificate') || lower.includes('pdf') || lower.includes('praman patra')) {
+    if (
+      lower.includes('certificate') ||
+      lower.includes('pdf') ||
+      lower.includes('praman patra') ||
+      text.includes('प्रमाणपत्र') ||
+      text.includes('सर्टिफिकेट')
+    ) {
       return 'certificate';
     }
-    if (lower.includes('schedule') || lower.includes('dates') || lower.includes('due date')) {
+    if (
+      lower.includes('schedule') ||
+      lower.includes('dates') ||
+      lower.includes('due date') ||
+      text.includes('अनुसूची') ||
+      text.includes('शेड्यूल')
+    ) {
       return 'schedule';
     }
     return undefined;
@@ -236,7 +282,10 @@ const VaxBotChat: React.FC = () => {
       const fallbackResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: 'Maaf kijiye, server se connect karne me dikkat aa rahi hai. Vaccine ke baad halka bukhar aana normal hai. Baby ko comfortable kapde pehnayein aur lukewarm paani ki patti rakhein.',
+        text:
+          activePromptTab === 'hindi'
+            ? 'माफ़ कीजिए, सर्वर से जुड़ने में समस्या आ रही है। टीकाकरण के बाद हल्का बुखार आना पूरी तरह सामान्य है। बच्चे को आरामदायक सूती कपड़े पहनाएं और माथे पर गुनगुने पानी की पट्टी रखें।'
+            : 'Maaf kijiye, server se connect karne me dikkat aa rahi hai. Vaccine ke baad halka bukhar aana normal hai. Baby ko comfortable kapde pehnayein aur lukewarm paani ki patti rakhein.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, fallbackResponse]);
@@ -272,7 +321,12 @@ const VaxBotChat: React.FC = () => {
     });
   };
 
-  const currentQuestions = activePromptTab === 'hinglish' ? HINGLISH_QUESTIONS : ENGLISH_QUESTIONS;
+  const currentQuestions =
+    activePromptTab === 'hindi'
+      ? HINDI_QUESTIONS
+      : activePromptTab === 'hinglish'
+      ? HINGLISH_QUESTIONS
+      : ENGLISH_QUESTIONS;
 
   return (
     <>
@@ -293,7 +347,13 @@ const VaxBotChat: React.FC = () => {
               <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-300 rounded-full border-2 border-teal-600" />
             </div>
             <span className="font-display font-semibold text-sm pr-1 hidden sm:inline-block">
-              {isOpen ? 'Close VaxBot' : 'Ask VaxBot AI'}
+              {isOpen
+                ? activePromptTab === 'hindi'
+                  ? 'VaxBot बंद करें'
+                  : 'Close VaxBot'
+                : activePromptTab === 'hindi'
+                ? 'VaxBot से पूछें'
+                : 'Ask VaxBot AI'}
             </span>
           </button>
         </motion.div>
@@ -307,7 +367,7 @@ const VaxBotChat: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[440px] h-[600px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[450px] h-[620px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-700 text-white p-4 flex items-center justify-between shadow-sm flex-shrink-0">
@@ -319,10 +379,15 @@ const VaxBotChat: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold font-display text-base text-white">VaxBot</h3>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" /> AI Online
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                      {activePromptTab === 'hindi' ? 'एआई ऑनलाइन' : 'AI Online'}
                     </span>
                   </div>
-                  <p className="text-xs text-teal-100">NIS 2025 Pediatric Immunization Guide</p>
+                  <p className="text-xs text-teal-100">
+                    {activePromptTab === 'hindi'
+                      ? 'NIS 2025 बाल टीकाकरण मार्गदर्शक'
+                      : 'NIS 2025 Pediatric Immunization Guide'}
+                  </p>
                 </div>
               </div>
 
@@ -330,7 +395,7 @@ const VaxBotChat: React.FC = () => {
                 <button
                   onClick={handleResetChat}
                   className="p-1.5 rounded-xl hover:bg-white/15 text-white/80 hover:text-white transition-colors"
-                  title="Clear / Reset Conversation"
+                  title={activePromptTab === 'hindi' ? 'बातचीत रीसेट करें' : 'Clear / Reset Conversation'}
                   aria-label="Reset conversation"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -345,13 +410,25 @@ const VaxBotChat: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick 10+10 Question Tabs Tray (Clean scroll without ugly arrows) */}
+            {/* Quick Question Tabs Tray (Hindi / Hinglish / English) */}
             <div className="p-2.5 bg-muted/40 border-b border-border/60 flex-shrink-0">
               <div className="flex items-center justify-between mb-1.5 px-1">
                 <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
-                  <HelpCircle className="w-3.5 h-3.5 text-primary" /> Popular Questions (10+10)
+                  <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                  {activePromptTab === 'hindi' ? 'लोकप्रिय प्रश्न (10+10+10)' : 'Popular Questions (10+10+10)'}
                 </span>
                 <div className="flex gap-1 bg-background p-0.5 rounded-lg border border-border">
+                  <button
+                    onClick={() => setActivePromptTab('hindi')}
+                    className={cn(
+                      'px-2 py-0.5 text-[11px] font-semibold rounded-md transition-colors',
+                      activePromptTab === 'hindi'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    🇮🇳 हिंदी (10)
+                  </button>
                   <button
                     onClick={() => setActivePromptTab('hinglish')}
                     className={cn(
@@ -361,7 +438,7 @@ const VaxBotChat: React.FC = () => {
                         : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
-                    🇮🇳 Hinglish (10)
+                    🔤 Hinglish (10)
                   </button>
                   <button
                     onClick={() => setActivePromptTab('english')}
@@ -428,7 +505,10 @@ const VaxBotChat: React.FC = () => {
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-xs"
                           >
-                            <FileText className="w-3.5 h-3.5" /> Open Certificate Dashboard
+                            <FileText className="w-3.5 h-3.5" />
+                            {activePromptTab === 'hindi'
+                              ? 'प्रमाणपत्र डैशबोर्ड खोलें'
+                              : 'Open Certificate Dashboard'}
                           </button>
                         </div>
                       )}
@@ -442,7 +522,10 @@ const VaxBotChat: React.FC = () => {
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-xs"
                           >
-                            <Calendar className="w-3.5 h-3.5" /> View Immunization Schedule
+                            <Calendar className="w-3.5 h-3.5" />
+                            {activePromptTab === 'hindi'
+                              ? 'टीकाकरण अनुसूची देखें'
+                              : 'View Immunization Schedule'}
                           </button>
                         </div>
                       )}
@@ -457,7 +540,10 @@ const VaxBotChat: React.FC = () => {
                             }}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-600/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-medium hover:bg-teal-600 hover:text-white transition-all shadow-xs"
                           >
-                            <FileText className="w-3.5 h-3.5" /> Download Certificate
+                            <FileText className="w-3.5 h-3.5" />
+                            {activePromptTab === 'hindi'
+                              ? 'प्रमाणपत्र डाउनलोड करें'
+                              : 'Download Certificate'}
                           </button>
                           <button
                             onClick={() => {
@@ -466,7 +552,8 @@ const VaxBotChat: React.FC = () => {
                             }}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-600/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-medium hover:bg-teal-600 hover:text-white transition-all shadow-xs"
                           >
-                            <Calendar className="w-3.5 h-3.5" /> Full Schedule
+                            <Calendar className="w-3.5 h-3.5" />
+                            {activePromptTab === 'hindi' ? 'पूरा शेड्यूल देखें' : 'Full Schedule'}
                           </button>
                         </div>
                       )}
@@ -476,17 +563,23 @@ const VaxBotChat: React.FC = () => {
                         <button
                           onClick={() => handleSpeak(msg.text, msg.id)}
                           className="mt-2 text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/80 border border-border/70 transition-colors"
-                          title="Listen to this response"
+                          title={activePromptTab === 'hindi' ? 'उत्तर सुनें' : 'Listen to this response'}
                         >
                           {speakingMsgId === msg.id ? (
                             <>
                               <VolumeX className="w-3 h-3 text-rose-500 animate-pulse" />
-                              <span className="text-rose-500 font-semibold">Stop Voice</span>
+                              <span className="text-rose-500 font-semibold">
+                                {activePromptTab === 'hindi' ? 'आवाज़ रोकें' : 'Stop Voice'}
+                              </span>
                             </>
                           ) : (
                             <>
                               <Volume2 className="w-3 h-3 text-primary" />
-                              <span className="font-medium">Listen (Suniye) 🔊</span>
+                              <span className="font-medium">
+                                {activePromptTab === 'hindi'
+                                  ? 'सुनिए (ऑडियो) 🔊'
+                                  : 'Listen (Suniye) 🔊'}
+                              </span>
                             </>
                           )}
                         </button>
@@ -537,7 +630,13 @@ const VaxBotChat: React.FC = () => {
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask in Hindi, English ya Hinglish..."
+                  placeholder={
+                    activePromptTab === 'hindi'
+                      ? 'यहाँ अपना सवाल शुद्ध हिंदी में लिखें...'
+                      : activePromptTab === 'hinglish'
+                      ? 'Ask in Hindi, English ya Hinglish...'
+                      : 'Ask about vaccines, fever, missed doses...'
+                  }
                   className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-background text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
                 />
                 <Button
@@ -552,7 +651,11 @@ const VaxBotChat: React.FC = () => {
 
               <div className="text-[10px] text-center text-muted-foreground/70 mt-1.5 flex items-center justify-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                <span>NIS 2025 Clinical AI Guide • In emergency consult pediatrician</span>
+                <span>
+                  {activePromptTab === 'hindi'
+                    ? 'NIS 2025 क्लिनिकल एआई गाइड • आपातकाल में तुरंत बाल रोग विशेषज्ञ से परामर्श करें'
+                    : 'NIS 2025 Clinical AI Guide • In emergency consult pediatrician'}
+                </span>
               </div>
             </div>
           </motion.div>
