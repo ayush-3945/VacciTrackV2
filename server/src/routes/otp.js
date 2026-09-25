@@ -7,7 +7,7 @@ import Otp from '../models/Otp.js';
 import Child from '../models/Child.js';
 import User from '../models/User.js';
 import { generateOtp, sendOtp, maskPhone } from '../utils/smsService.js';
-import { sendOtpEmail, sendVaccineReminderEmail } from '../utils/emailService.js';
+import { sendOtpEmail, sendVaccineReminderEmail, testEmailService } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -444,6 +444,19 @@ router.post(
       message: `Vaccine reminder sent successfully to ${targetEmail}`,
       details: result,
     });
+  })
+);
+
+/**
+ * POST /api/otp/test-email
+ * Test Gmail / SMTP setup and send a sample verification email
+ */
+router.post(
+  '/test-email',
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const result = await testEmailService(email);
+    res.json(result);
   })
 );
 

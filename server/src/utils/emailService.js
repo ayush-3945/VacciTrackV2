@@ -6,6 +6,24 @@ import nodemailer from 'nodemailer';
  */
 
 const getTransporter = () => {
+  // Option 1: Generic Custom SMTP (Host, Port, User, Pass)
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const port = Number(process.env.SMTP_PORT) || 587;
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: process.env.SMTP_SECURE === 'true' || port === 465,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  }
+
+  // Option 2: Gmail with App Password
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
 
@@ -17,6 +35,10 @@ const getTransporter = () => {
   }
 
   return null;
+};
+
+const getSenderEmail = () => {
+  return process.env.EMAIL_FROM || process.env.GMAIL_USER || process.env.SMTP_USER || 'no-reply@vaccitrack.gov.in';
 };
 
 /**
@@ -59,7 +81,7 @@ export const sendOtpEmail = async (toEmail, otp, childName = 'your child') => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"VacciTrack" <${process.env.GMAIL_USER}>`,
+      from: `"VacciTrack" <${getSenderEmail()}>`,
       to: toEmail,
       subject: `VacciTrack: Your OTP Verification Code is ${otp}`,
       html,
@@ -130,7 +152,7 @@ export const sendVaccineReminderEmail = async (toEmail, reminderData) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"VacciTrack" <${process.env.GMAIL_USER}>`,
+      from: `"VacciTrack" <${getSenderEmail()}>`,
       to: toEmail,
       subject: `VacciTrack reminder: vaccination due in ${daysRemaining} days`,
       html,
@@ -140,5 +162,42 @@ export const sendVaccineReminderEmail = async (toEmail, reminderData) => {
   } catch (error) {
     console.error(`[Email Error] Failed to send reminder email to ${toEmail}:`, error.message);
     return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Test SMTP connection and configuration
+ */
+export const testEmailService = async (targetEmail) => {
+  const transporter = getTransporter();
+  if (!transporter) {
+    return {
+      configured: false,
+      message: 'Email credentials (GMAIL_USER / GMAIL_APP_PASSWORD or SMTP_HOST / SMTP_USER / SMTP_PASS) are not set in server/.env',
+    };
+  }
+
+  try {
+    await transporter.verify();
+    if (targetEmail) {
+      const sendResult = await sendOtpEmail(targetEmail, '123456', 'Test Child');
+      return {
+        configured: true,
+        verified: true,
+        testSend: sendResult,
+        message: `Successfully connected to SMTP and sent test email to ${targetEmail}`,
+      };
+    }
+    return {
+      configured: true,
+      verified: true,
+      message: 'SMTP connection verified successfully!',
+    };
+  } catch (err) {
+    return {
+      configured: true,
+      verified: false,
+      error: err.message,
+    };
   }
 };
