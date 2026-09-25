@@ -1,5 +1,6 @@
 // API service for communicating with backend, with seamless local demo fallback for Vercel/cloud previews
 import { userRepository, childRepository } from './dataStore';
+import { queryClientVaxbot } from './vaxbotEngine';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -511,30 +512,13 @@ export const chatAPI = {
         method: 'POST',
         body: JSON.stringify({ message, context }),
       });
-      return response.data;
-    } catch (error) {
-      if (error.isNetworkError || error.message === 'BACKEND_OFFLINE') {
-        const isHi = context.lang === 'hindi' || context.lang === 'hi' || /[\u0900-\u097F]/.test(message);
-        if (isHi) {
-          return {
-            reply: `नमस्ते! भारत सरकार के राष्ट्रीय टीकाकरण कार्यक्रम (NIS 2025) के तहत सभी अनिवार्य टीके (जैसे बीसीजी, हेपेटाइटिस बी, पेंटावेलेंट, पोलियो, रोटावायरस, और एमआर) बच्चे की संपूर्ण सुरक्षा के लिए 100% मुफ्त उपलब्ध हैं। आपके प्रश्न "${message.substring(0, 30)}..." के संबंध में, कृपया अपने बच्चे की समयरेखा देखें या अपने नजदीकी सरकारी स्वास्थ्य केंद्र (PHC) से संपर्क करें।`,
-            suggestions: [
-              'टीकाकरण के बाद बुखार?',
-              'NIS 2025 शेड्यूल',
-              'प्रमाणपत्र डाउनलोड करें',
-            ],
-          };
-        }
-        return {
-          reply: `Namaste! Under the National Immunization Schedule (NIS 2025), all primary vaccinations like BCG, Hepatitis B, Pentavalent, OPV/IPV, Rotavirus, and MR are 100% free and essential for your child's immunity. For queries regarding "${message.substring(0, 30)}...", please refer to your child's timeline or consult your nearest Government PHC.`,
-          suggestions: [
-            'Fever after vaccine?',
-            'NIS 2025 schedule overview',
-            'Download Certificate',
-          ],
-        };
+      if (response && response.data && response.data.reply) {
+        return response.data;
       }
-      throw error;
+      return queryClientVaxbot(message, context);
+    } catch (error) {
+      console.warn('Backend chat API unavailable, utilizing VaxBot Clinical Engine:', error.message);
+      return queryClientVaxbot(message, context);
     }
   },
 };
